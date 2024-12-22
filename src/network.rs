@@ -97,21 +97,23 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
             .last
             .backpropogate(output_loss_gradients, data.hidden_output);
 
-        let mut hidden: [CalculusShenanigans<WIDTH, WIDTH>; HIDDEN] = unsafe { MaybeUninit::uninit().assume_init() }; // every value gets something assigned to it eventually
+        let mut hidden: [MaybeUninit<CalculusShenanigans<WIDTH, WIDTH>>; HIDDEN] = from_fn(|_| MaybeUninit::uninit() ); // every value gets something assigned to it eventually
 
         let mut current_loss_gradient = &last.loss_gradient;
 
         // This loop assigns something to every element of HIDDEN, so the uninitialized memory is eventually replaced with acceptable values
         for i in (0..HIDDEN).rev() {
-            hidden[i] = self.hidden[i].backpropogate(*current_loss_gradient, data.hidden_inputs[i]);
-            current_loss_gradient = &hidden[i].loss_gradient; // this value just was assigned and nothing else will change it, thus it is safe to reference
+            hidden[i].write(self.hidden[i].backpropogate(*current_loss_gradient, data.hidden_inputs[i]));
+            
+            // I am allowed to use hidden[i] as i just initialized it
+            current_loss_gradient = unsafe {&hidden[i].assume_init_ref().loss_gradient}; // this value just was assigned and nothing else will change it, thus it is safe to reference
         }
 
         let first = self.first.backpropogate(*current_loss_gradient, data.input);
 
         TrainingGradients {
             first,
-            hidden,
+            hidden: unsafe {hidden.as_ptr().cast::<[CalculusShenanigans<WIDTH, WIDTH>; HIDDEN]>().read()}, // as MaybeUninit is a union: () | T, the largest type will be T and thus this will be correctly sized and i can do this cast
             last,
         }
     }
