@@ -1,5 +1,6 @@
 use std::{
     array::from_fn,
+    iter::Sum,
     ops::{Add, Mul, Neg, Sub},
 };
 
@@ -14,6 +15,41 @@ pub struct TrainingGradients<
     pub first: CalculusShenanigans<INPUTS, WIDTH>,
     pub hidden: [CalculusShenanigans<WIDTH, WIDTH>; HIDDEN],
     pub last: CalculusShenanigans<WIDTH, OUTPUTS>,
+}
+
+impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
+    TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+{
+    pub fn mean(collection: &[Self]) -> Self {
+        &collection.iter().sum::<Self>() * (1f32 / collection.len() as f32)
+    }
+}
+
+impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
+    Sum<&'a TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>>
+    for TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+{
+    fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
+        let mut sum = TrainingGradients::<INPUTS, OUTPUTS, WIDTH, HIDDEN>::default();
+
+        for i in iter {
+            sum = &sum + i;
+        }
+
+        sum
+    }
+}
+
+impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize> Default
+    for TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+{
+    fn default() -> Self {
+        Self {
+            first: Default::default(),
+            hidden: from_fn(|_| Default::default()),
+            last: Default::default(),
+        }
+    }
 }
 
 impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize> Add

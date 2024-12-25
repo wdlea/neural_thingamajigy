@@ -9,6 +9,17 @@ pub struct CalculusShenanigans<const INPUTS: usize, const OUTPUTS: usize> {
     pub loss_gradient: SVector<f32, INPUTS>,
 }
 
+impl<const INPUTS: usize, const OUTPUTS: usize> Default for CalculusShenanigans<INPUTS, OUTPUTS> {
+    fn default() -> Self {
+        Self {
+            weight_shift: SMatrix::zeros(),
+            bias_shift: SMatrix::zeros(),
+            gradient: SMatrix::zeros(),
+            loss_gradient: SMatrix::zeros(),
+        }
+    }
+}
+
 impl<const INPUTS: usize, const OUTPUTS: usize> Add for &CalculusShenanigans<INPUTS, OUTPUTS> {
     type Output = CalculusShenanigans<INPUTS, OUTPUTS>;
 

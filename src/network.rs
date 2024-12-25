@@ -1,4 +1,4 @@
-use std::{array::from_fn, mem::MaybeUninit};
+use std::{array::from_fn, iter::zip, mem::MaybeUninit};
 
 use nalgebra::SVector;
 
@@ -108,5 +108,27 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
             }, // as MaybeUninit is a union: () | T, the largest type will be T and thus this will be correctly sized and i can do this cast
             last,
         }
+    }
+
+    pub fn apply_nudge(
+        &mut self,
+        nudge: TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+        learning_rate: f32,
+    ) {
+        self.first.apply_shifts(
+            nudge.first.weight_shift,
+            nudge.first.bias_shift,
+            learning_rate,
+        );
+
+        for (layer, shift) in zip(&mut self.hidden, nudge.hidden) {
+            layer.apply_shifts(shift.weight_shift, shift.bias_shift, learning_rate);
+        }
+
+        self.last.apply_shifts(
+            nudge.last.weight_shift,
+            nudge.last.bias_shift,
+            learning_rate,
+        );
     }
 }
