@@ -2,7 +2,7 @@ use std::{array::from_fn, mem::MaybeUninit};
 
 use nalgebra::SVector;
 
-use crate::{CalculusShenanigans, Layer};
+use crate::{CalculusShenanigans, Layer, TrainingGradients};
 
 pub struct Network<
     'a,
@@ -25,17 +25,6 @@ pub struct TrainingData<
     input: SVector<f32, INPUTS>,
     hidden_inputs: [SVector<f32, WIDTH>; HIDDEN],
     hidden_output: SVector<f32, WIDTH>,
-}
-
-pub struct TrainingGradients<
-    const INPUTS: usize,
-    const OUTPUTS: usize,
-    const WIDTH: usize,
-    const HIDDEN: usize,
-> {
-    first: CalculusShenanigans<INPUTS, WIDTH>,
-    hidden: [CalculusShenanigans<WIDTH, WIDTH>; HIDDEN],
-    last: CalculusShenanigans<WIDTH, OUTPUTS>,
 }
 
 impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>

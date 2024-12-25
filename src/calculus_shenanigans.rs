@@ -9,11 +9,11 @@ pub struct CalculusShenanigans<const INPUTS: usize, const OUTPUTS: usize> {
     pub loss_gradient: SVector<f32, INPUTS>,
 }
 
-impl<const INPUTS: usize, const OUTPUTS: usize> Add for CalculusShenanigans<INPUTS, OUTPUTS> {
-    type Output = Self;
+impl<const INPUTS: usize, const OUTPUTS: usize> Add for &CalculusShenanigans<INPUTS, OUTPUTS> {
+    type Output = CalculusShenanigans<INPUTS, OUTPUTS>;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Self {
+        CalculusShenanigans::<INPUTS, OUTPUTS> {
             weight_shift: self.weight_shift + rhs.weight_shift,
             bias_shift: self.bias_shift + rhs.bias_shift,
             gradient: self.gradient + rhs.gradient,
@@ -22,11 +22,11 @@ impl<const INPUTS: usize, const OUTPUTS: usize> Add for CalculusShenanigans<INPU
     }
 }
 
-impl<const INPUTS: usize, const OUTPUTS: usize> Neg for CalculusShenanigans<INPUTS, OUTPUTS> {
-    type Output = Self;
+impl<const INPUTS: usize, const OUTPUTS: usize> Neg for &CalculusShenanigans<INPUTS, OUTPUTS> {
+    type Output = CalculusShenanigans<INPUTS, OUTPUTS>;
 
     fn neg(self) -> Self::Output {
-        Self {
+        CalculusShenanigans::<INPUTS, OUTPUTS> {
             weight_shift: -self.weight_shift,
             bias_shift: -self.bias_shift,
             gradient: -self.gradient,
@@ -35,19 +35,19 @@ impl<const INPUTS: usize, const OUTPUTS: usize> Neg for CalculusShenanigans<INPU
     }
 }
 
-impl<const INPUTS: usize, const OUTPUTS: usize> Sub for CalculusShenanigans<INPUTS, OUTPUTS> {
-    type Output = Self;
+impl<const INPUTS: usize, const OUTPUTS: usize> Sub for &CalculusShenanigans<INPUTS, OUTPUTS> {
+    type Output = CalculusShenanigans<INPUTS, OUTPUTS>;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        self + -rhs
+        self + &-rhs
     }
 }
 
-impl<const INPUTS: usize, const OUTPUTS: usize> Mul<f32> for CalculusShenanigans<INPUTS, OUTPUTS> {
-    type Output = Self;
+impl<const INPUTS: usize, const OUTPUTS: usize> Mul<f32> for &CalculusShenanigans<INPUTS, OUTPUTS> {
+    type Output = CalculusShenanigans<INPUTS, OUTPUTS>;
 
     fn mul(self, rhs: f32) -> Self::Output {
-        Self {
+        CalculusShenanigans::<INPUTS, OUTPUTS> {
             weight_shift: self.weight_shift * rhs,
             bias_shift: self.bias_shift * rhs,
             gradient: self.gradient * rhs,
