@@ -1,3 +1,4 @@
+use crate::CalculusShenanigans;
 use nalgebra::{SMatrix, SVector};
 
 pub struct Layer<'a, const INPUTS: usize, const OUTPUTS: usize> {
@@ -5,13 +6,6 @@ pub struct Layer<'a, const INPUTS: usize, const OUTPUTS: usize> {
     bias: SVector<f32, OUTPUTS>,
     activation: &'a dyn Fn(f32) -> f32,
     activation_gradient: &'a dyn Fn(f32) -> f32,
-}
-
-pub struct CalculusShenanigans<const INPUTS: usize, const OUTPUTS: usize> {
-    pub weight_shift: SMatrix<f32, OUTPUTS, INPUTS>,
-    pub bias_shift: SVector<f32, OUTPUTS>,
-    pub gradient: SMatrix<f32, OUTPUTS, INPUTS>,
-    pub loss_gradient: SVector<f32, INPUTS>,
 }
 
 impl<const INPUTS: usize, const OUTPUTS: usize> Layer<'_, INPUTS, OUTPUTS> {
