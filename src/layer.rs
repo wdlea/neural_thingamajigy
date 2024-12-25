@@ -61,4 +61,17 @@ impl<const INPUTS: usize, const OUTPUTS: usize> Layer<'_, INPUTS, OUTPUTS> {
             loss_gradient: gradient.transpose() * loss_gradients,
         }
     }
+
+    pub fn apply_shifts(
+        &mut self,
+        weight_shift: SMatrix<f32, OUTPUTS, INPUTS>,
+        bias_shift: SVector<f32, OUTPUTS>,
+        learning_rate: f32,
+    ) {
+        let weight_shift = weight_shift.normalize() * learning_rate;
+        let bias_shift = bias_shift.normalize() * learning_rate;
+
+        self.weight += weight_shift;
+        self.bias += bias_shift;
+    }
 }
