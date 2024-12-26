@@ -10,9 +10,9 @@ pub fn train<
     const HIDDEN: usize,
 >(
     data: &'a [(SVector<f32, INPUTS>, SVector<f32, OUTPUTS>)],
-    mut network: Network<'a, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+    network: &mut Network<'a, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
     learning_rate: f32,
-) -> Network<'a, INPUTS, OUTPUTS, WIDTH, HIDDEN> {
+) {
     let gradients: Vec<TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>> = data
         .iter()
         .map(
@@ -30,6 +30,4 @@ pub fn train<
     let gradient = TrainingGradients::mean(&gradients); // mean squared error
 
     network.apply_nudge(-&gradient, learning_rate); // minimise by going the other way
-
-    network
 }

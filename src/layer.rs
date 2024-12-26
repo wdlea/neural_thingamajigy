@@ -8,7 +8,7 @@ pub struct Layer<'a, const INPUTS: usize, const OUTPUTS: usize> {
     activation_gradient: &'a dyn Fn(f32) -> f32,
 }
 
-impl<const INPUTS: usize, const OUTPUTS: usize> Layer<'_, INPUTS, OUTPUTS> {
+impl<'a, const INPUTS: usize, const OUTPUTS: usize> Layer<'a, INPUTS, OUTPUTS> {
     pub fn through(&self, inputs: SVector<f32, INPUTS>) -> SVector<f32, OUTPUTS> {
         let weighted = self.weight * inputs;
         let activated =
@@ -58,14 +58,31 @@ impl<const INPUTS: usize, const OUTPUTS: usize> Layer<'_, INPUTS, OUTPUTS> {
 
     pub fn apply_shifts(
         &mut self,
-        weight_shift: SMatrix<f32, OUTPUTS, INPUTS>,
-        bias_shift: SVector<f32, OUTPUTS>,
+        weight_direction: SMatrix<f32, OUTPUTS, INPUTS>,
+        bias_direction: SVector<f32, OUTPUTS>,
         learning_rate: f32,
     ) {
-        let weight_shift = weight_shift.normalize() * learning_rate;
-        let bias_shift = bias_shift.normalize() * learning_rate;
+        //only shift values if there is a shift, otherwise normalize causes NaN due to division by 0 magnitude
+        if weight_direction.norm() > 0f32 {
+            let weight_shift = weight_direction.normalize() * learning_rate;
+            self.weight += weight_shift;
+        }
 
-        self.weight += weight_shift;
-        self.bias += bias_shift;
+        if bias_direction.norm() > 0f32 {
+            let bias_shift = bias_direction.normalize() * learning_rate;
+            self.bias += bias_shift;
+        }
+    }
+
+    pub fn zeroed(
+        activation: &'a dyn Fn(f32) -> f32,
+        activation_gradient: &'a dyn Fn(f32) -> f32,
+    ) -> Self {
+        Self {
+            weight: SMatrix::zeros(),
+            bias: SMatrix::zeros(),
+            activation,
+            activation_gradient,
+        }
     }
 }
