@@ -74,13 +74,13 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize> Layer<'a, INPUTS, OUTPUTS> {
         }
     }
 
-    pub fn zeroed(
+    pub fn random(
         activation: &'a dyn Fn(f32) -> f32,
         activation_gradient: &'a dyn Fn(f32) -> f32,
     ) -> Self {
         Self {
-            weight: SMatrix::zeros(),
-            bias: SMatrix::zeros(),
+            weight: SMatrix::new_random(),
+            bias: SMatrix::new_random(),
             activation,
             activation_gradient,
         }

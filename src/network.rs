@@ -137,14 +137,14 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HI
         );
     }
 
-    pub fn zeroed(
+    pub fn random(
         activation: &'a dyn Fn(f32) -> f32,
         activation_gradient: &'a dyn Fn(f32) -> f32,
     ) -> Self {
         Self {
-            first: Layer::zeroed(activation, activation_gradient),
-            hidden: from_fn(|_| Layer::zeroed(activation, activation_gradient)),
-            last: Layer::zeroed(activation, activation_gradient),
+            first: Layer::random(activation, activation_gradient),
+            hidden: from_fn(|_| Layer::random(activation, activation_gradient)),
+            last: Layer::random(activation, activation_gradient),
         }
     }
 }

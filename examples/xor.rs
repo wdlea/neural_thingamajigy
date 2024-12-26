@@ -14,7 +14,7 @@ fn dsigmoid_dx(x: f32) -> f32 {
 }
 
 fn main() {
-    let mut network = Network::<2, 1, 2, 1>::zeroed(&sigmoid, &dsigmoid_dx);
+    let mut network = Network::<2, 1, 2, 1>::random(&sigmoid, &dsigmoid_dx);
 
     let data = [
         (Vector2::new(0f32, 0f32), Vector1::new(0f32)),
@@ -29,15 +29,12 @@ fn main() {
         println!("Epoch #{}", counter);
         counter += 1;
 
-        train(&data, &mut network, 0f32);
+        train(&data, &mut network, -0.02f32);
 
         for (x, y) in data{
             let predicted = network.evaluate(x);
-            println!("Actual: {}, Predicted: {}", y, predicted);
 
             let difference = (y - predicted).norm();
-
-            println!("Difference: {}", difference);
 
             if difference >= 0.5{
                 continue 'training_loop;
