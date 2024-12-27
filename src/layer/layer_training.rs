@@ -55,11 +55,11 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize> Layer<INPUTS, OUTPUTS> {
         }
     }
 
-    /// Generates a new layer with all values between 0 and 1.
+    /// Generates a new layer with all values between -1 and 1
     pub fn random() -> Self {
         Self {
-            weight: SMatrix::new_random(),
-            bias: SMatrix::new_random(),
+            weight: SMatrix::new_random() * 2f32 - SMatrix::from_fn(|_, _| 1f32),
+            bias: SMatrix::new_random() * 2f32 - SMatrix::from_fn(|_, _| 1f32),
         }
     }
 }

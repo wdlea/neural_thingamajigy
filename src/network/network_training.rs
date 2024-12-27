@@ -125,7 +125,7 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HI
         );
     }
 
-    /// Generates a random network with random(0-1) weights and biases.
+    /// Generates a random network with random((-1)-(1)) weights and biases.
     pub fn random() -> Self {
         Self {
             first: Layer::random(),
