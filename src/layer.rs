@@ -10,9 +10,13 @@ mod layer_training;
 
 use nalgebra::{SMatrix, SVector};
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 use crate::Activator;
 
 /// A layer of neurons in the network, this contains the weights, biases, activaiton function and it's gradient.
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Layer<const INPUTS: usize, const OUTPUTS: usize> {
     /// A matrix representing the weights of each value for each neuron.
     weight: SMatrix<f32, OUTPUTS, INPUTS>,

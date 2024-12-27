@@ -10,6 +10,9 @@ pub use network_data::NetworkData;
 
 use nalgebra::SVector;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 use crate::{layer::Layer, Activator};
 
 /// Represents a network, a sequence of layer operations. Due to limitations in
@@ -17,6 +20,7 @@ use crate::{layer::Layer, Activator};
 /// layer has `INPUTS` inputs and `WIDTH` outputs. All hidden layers take `WIDTH`
 /// inputs and produce `WIDTH` outputs. The last layer has `WIDTH` inputs and
 /// produces `OUTPUTS` outputs. There are `HIDDEN`(can be 0) hidden layers.
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Network<
     const INPUTS: usize,
     const OUTPUTS: usize,
@@ -26,6 +30,7 @@ pub struct Network<
     /// The first layer
     first: Layer<INPUTS, WIDTH>,
     /// All hidden layers
+    #[cfg_attr(feature = "serde", serde(with = "serde_arrays"))]
     hidden: [Layer<WIDTH, WIDTH>; HIDDEN],
     /// The last layer
     last: Layer<WIDTH, OUTPUTS>,
