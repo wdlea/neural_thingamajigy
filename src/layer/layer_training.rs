@@ -41,18 +41,9 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize> Layer<INPUTS, OUTPUTS> {
         &mut self,
         weight_direction: SMatrix<f32, OUTPUTS, INPUTS>,
         bias_direction: SVector<f32, OUTPUTS>,
-        learning_rate: f32,
     ) {
-        //only shift values if there is a shift, otherwise normalize causes NaN due to division by 0 magnitude
-        if weight_direction.norm() > 0f32 {
-            let weight_shift = weight_direction.normalize() * learning_rate;
-            self.weight += weight_shift;
-        }
-
-        if bias_direction.norm() > 0f32 {
-            let bias_shift = bias_direction.normalize() * learning_rate;
-            self.bias += bias_shift;
-        }
+        self.weight += weight_direction;
+        self.bias += bias_direction;
     }
 
     /// Generates a new layer with all values between -1 and 1

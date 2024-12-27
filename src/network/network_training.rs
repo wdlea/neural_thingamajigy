@@ -108,20 +108,33 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HI
         nudge: NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
         learning_rate: f32,
     ) {
+        let shift_mag = nudge.first.bias_gradient.norm()
+            + nudge.first.weight_gradient.norm()
+            + nudge.last.bias_gradient.norm()
+            + nudge.last.weight_gradient.norm()
+            + nudge
+                .hidden
+                .iter()
+                .map(|i| i.bias_gradient.norm() + i.weight_gradient.norm())
+                .sum::<f32>();
+
+        let multiplier = learning_rate / shift_mag; // thus the total magnitiude should be learning_rate
+
         self.first.apply_shifts(
-            nudge.first.weight_gradient,
-            nudge.first.bias_gradient,
-            learning_rate,
+            nudge.first.weight_gradient * multiplier,
+            nudge.first.bias_gradient * multiplier,
         );
 
         for (layer, shift) in zip(&mut self.hidden, nudge.hidden) {
-            layer.apply_shifts(shift.weight_gradient, shift.bias_gradient, learning_rate);
+            layer.apply_shifts(
+                shift.weight_gradient * multiplier,
+                shift.bias_gradient * multiplier,
+            );
         }
 
         self.last.apply_shifts(
-            nudge.last.weight_gradient,
-            nudge.last.bias_gradient,
-            learning_rate,
+            nudge.last.weight_gradient * multiplier,
+            nudge.last.bias_gradient * multiplier,
         );
     }
 
