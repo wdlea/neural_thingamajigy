@@ -3,7 +3,7 @@ mod network_training;
 
 use nalgebra::SVector;
 
-use crate::Layer;
+use crate::layer::Layer;
 
 /// Represents a network, a sequence of layer operations. Due to limitations in
 /// the implementation, it must have at least 2 layers(first & last). The first

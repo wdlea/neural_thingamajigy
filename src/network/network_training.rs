@@ -1,7 +1,9 @@
 use nalgebra::SVector;
 use std::{array::from_fn, iter::zip, mem::MaybeUninit};
 
-use crate::{Layer, LayerData, Network, NetworkData, TrainingInputs};
+use crate::{layer::Layer, layer_data::LayerData, network_data::NetworkData};
+
+use super::{Network, TrainingInputs};
 
 impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
     Network<'a, INPUTS, OUTPUTS, WIDTH, HIDDEN>

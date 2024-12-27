@@ -17,9 +17,5 @@ mod train;
 /// This defines the NetworkData type, containing data used in training about an entire network.
 mod network_data;
 
-pub use layer::Layer;
-pub use layer_data::LayerData;
 pub use network::Network;
-pub use network::TrainingInputs;
-pub use network_data::NetworkData;
 pub use train::train;

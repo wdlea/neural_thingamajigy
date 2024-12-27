@@ -1,6 +1,6 @@
 use nalgebra::SVector;
 
-use crate::{Network, NetworkData};
+use crate::{network_data::NetworkData, Network};
 
 /// Perform 1 training epoch on a network with training data.
 /// `data` is a slice of `(INPUT, OUTPUT)` tuples.

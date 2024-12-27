@@ -1,4 +1,4 @@
-use crate::LayerData;
+use crate::layer_data::LayerData;
 use nalgebra::{SMatrix, SVector};
 
 /// A layer of neurons in the network, this contains the weights, biases, activaiton function and it's gradient.

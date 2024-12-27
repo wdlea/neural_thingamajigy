@@ -4,7 +4,7 @@ use std::{
     ops::{Add, Mul, Neg, Sub},
 };
 
-use crate::LayerData;
+use crate::layer_data::LayerData;
 
 /// Data about a network generated via backpropogation used in training.
 pub struct NetworkData<
