@@ -1,8 +1,11 @@
 /// Contains everything relating to training a network.
+#[cfg(feature = "train")]
 mod network_training;
 
 /// This defines the NetworkData type, containing data used in training about an entire network.
+#[cfg(feature = "train")]
 mod network_data;
+#[cfg(feature = "train")]
 pub use network_data::NetworkData;
 
 use nalgebra::SVector;
@@ -27,21 +30,6 @@ pub struct Network<
     hidden: [Layer<'a, WIDTH, WIDTH>; HIDDEN],
     /// The last layer
     last: Layer<'a, WIDTH, OUTPUTS>,
-}
-
-/// Inputs to each layer of the network, used in training.
-pub struct TrainingInputs<
-    const INPUTS: usize,
-    const OUTPUTS: usize,
-    const WIDTH: usize,
-    const HIDDEN: usize,
-> {
-    /// The inputs to the network
-    pub input: SVector<f32, INPUTS>,
-    /// The inputs to each hidden layer
-    pub hidden_inputs: [SVector<f32, WIDTH>; HIDDEN],
-    /// The input to the last layer
-    pub hidden_output: SVector<f32, WIDTH>,
 }
 
 impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>

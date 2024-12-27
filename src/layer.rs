@@ -1,8 +1,11 @@
 /// This defines the LayerData type, which contains data used in training about a layer.
+#[cfg(feature = "train")]
 mod layer_data;
+#[cfg(feature = "train")]
 pub use layer_data::LayerData;
 
 /// Contains everything relating to training a layer.
+#[cfg(feature = "train")]
 mod layer_training;
 
 use nalgebra::{SMatrix, SVector};
@@ -16,6 +19,7 @@ pub struct Layer<'a, const INPUTS: usize, const OUTPUTS: usize> {
     /// The activation function, which is applied after the weights and before the bias.
     activation: &'a dyn Fn(f32) -> f32,
     /// The gradient of the activation function, used in backpropogation.
+    #[cfg(feature = "train")]
     activation_gradient: &'a dyn Fn(f32) -> f32,
 }
 

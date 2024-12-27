@@ -3,5 +3,8 @@ name = "neural_thingamajigy"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+train = []
+
 [dependencies]
 nalgebra = {version="0.33.2", features=["rand", "libm"], default-features=false}

@@ -9,7 +9,10 @@ mod layer;
 mod network;
 
 /// This holds the train function, allowing users to train their networks via MSE.
+#[cfg(feature = "train")]
 mod train;
 
 pub use network::Network;
+
+#[cfg(feature = "train")]
 pub use train::train;

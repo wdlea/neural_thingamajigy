@@ -3,7 +3,22 @@ use std::{array::from_fn, iter::zip, mem::MaybeUninit};
 
 use crate::{layer::Layer, layer::LayerData, network::network_data::NetworkData};
 
-use super::{Network, TrainingInputs};
+use super::Network;
+
+/// Inputs to each layer of the network, used in training.
+pub struct TrainingInputs<
+    const INPUTS: usize,
+    const OUTPUTS: usize,
+    const WIDTH: usize,
+    const HIDDEN: usize,
+> {
+    /// The inputs to the network
+    pub input: SVector<f32, INPUTS>,
+    /// The inputs to each hidden layer
+    pub hidden_inputs: [SVector<f32, WIDTH>; HIDDEN],
+    /// The input to the last layer
+    pub hidden_output: SVector<f32, WIDTH>,
+}
 
 impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
     Network<'a, INPUTS, OUTPUTS, WIDTH, HIDDEN>
