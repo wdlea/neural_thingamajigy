@@ -8,3 +8,7 @@ train = []
 
 [dependencies]
 nalgebra = {version="0.33.2", features=["rand", "libm"], default-features=false}
+
+[[example]]
+name="xor"
+required-features=["train"]

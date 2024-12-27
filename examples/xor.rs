@@ -1,7 +1,7 @@
 use std::f32::consts::E;
 
 use nalgebra::{Vector1, Vector2};
-use neural_thingamajigy::{train, Network};
+use neural_thingamajigy::{train, Activator, Network};
 
 fn sigmoid(x: f32) -> f32 {
     1f32 / (1f32 + E.powf(-x))
@@ -14,7 +14,12 @@ fn dsigmoid_dx(x: f32) -> f32 {
 }
 
 fn main() {
-    let mut network = Network::<2, 1, 2, 1>::random(&sigmoid, &dsigmoid_dx);
+    let activator = Activator {
+        activation: Box::new(sigmoid),
+        activation_gradient: Box::new(dsigmoid_dx),
+    };
+
+    let mut network = Network::<2, 1, 2, 1>::random();
 
     let data = [
         (Vector2::new(0f32, 0f32), Vector1::new(0f32)),
@@ -32,11 +37,11 @@ fn main() {
         print!("{}, ", counter);
         counter += 1;
 
-        let mse = train(&data, &mut network, learning_rate);
+        let mse = train(&data, &mut network, learning_rate, &activator);
         print!("{}, ", mse);
 
         for (x, y) in data {
-            let predicted = network.evaluate(x);
+            let predicted = network.evaluate(x, &activator);
 
             let difference = (y - predicted).norm();
 

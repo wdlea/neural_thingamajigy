@@ -1,7 +1,7 @@
 use nalgebra::SVector;
 use std::{array::from_fn, iter::zip, mem::MaybeUninit};
 
-use crate::{layer::Layer, layer::LayerData, network::network_data::NetworkData};
+use crate::{layer::Layer, layer::LayerData, network::network_data::NetworkData, Activator};
 
 use super::Network;
 
@@ -21,30 +21,31 @@ pub struct TrainingInputs<
 }
 
 impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
-    Network<'a, INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    Network<INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
     /// The same thing as evaluate, but returns the inputs to each layer
     /// as well. This will incur a performance penalty.
     pub fn evaluate_training(
         &self,
         input: SVector<f32, INPUTS>,
+        activator: &Activator,
     ) -> (
         SVector<f32, OUTPUTS>,
         TrainingInputs<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
     ) {
-        let hidden_input = self.first.through(input);
+        let hidden_input = self.first.through(input, activator);
 
         let mut current_hidden = hidden_input;
 
         let hidden_inputs: [SVector<f32, WIDTH>; HIDDEN] = from_fn(|i| {
             let layer_input = current_hidden;
 
-            current_hidden = self.hidden[i].through(current_hidden);
+            current_hidden = self.hidden[i].through(current_hidden, activator);
 
             layer_input
         });
 
-        let output = self.last.through(current_hidden);
+        let output = self.last.through(current_hidden, activator);
 
         (
             output,
@@ -61,10 +62,11 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HI
         &self,
         data: TrainingInputs<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
         output_loss_gradients: SVector<f32, OUTPUTS>,
+        activator: &Activator,
     ) -> NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN> {
         let last = self
             .last
-            .backpropogate(output_loss_gradients, data.hidden_output);
+            .backpropogate(output_loss_gradients, data.hidden_output, activator);
 
         let mut hidden: [MaybeUninit<LayerData<WIDTH, WIDTH>>; HIDDEN] =
             from_fn(|_| MaybeUninit::uninit()); // every value gets something assigned to it eventually
@@ -73,15 +75,20 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HI
 
         // This loop assigns something to every element of HIDDEN, so the uninitialized memory is eventually replaced with acceptable values
         for i in (0..HIDDEN).rev() {
-            hidden[i]
-                .write(self.hidden[i].backpropogate(*current_loss_gradient, data.hidden_inputs[i]));
+            hidden[i].write(self.hidden[i].backpropogate(
+                *current_loss_gradient,
+                data.hidden_inputs[i],
+                activator,
+            ));
 
             // I am allowed to use hidden[i] as i just initialized it
             current_loss_gradient = unsafe { &hidden[i].assume_init_ref().loss_gradient };
             // this value just was assigned and nothing else will change it, thus it is safe to reference
         }
 
-        let first = self.first.backpropogate(*current_loss_gradient, data.input);
+        let first = self
+            .first
+            .backpropogate(*current_loss_gradient, data.input, activator);
 
         NetworkData {
             first,
@@ -119,14 +126,11 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HI
     }
 
     /// Generates a random network with random(0-1) weights and biases.
-    pub fn random(
-        activation: &'a dyn Fn(f32) -> f32,
-        activation_gradient: &'a dyn Fn(f32) -> f32,
-    ) -> Self {
+    pub fn random() -> Self {
         Self {
-            first: Layer::random(activation, activation_gradient),
-            hidden: from_fn(|_| Layer::random(activation, activation_gradient)),
-            last: Layer::random(activation, activation_gradient),
+            first: Layer::random(),
+            hidden: from_fn(|_| Layer::random()),
+            last: Layer::random(),
         }
     }
 }

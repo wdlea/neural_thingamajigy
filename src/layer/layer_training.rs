@@ -1,25 +1,15 @@
 use nalgebra::{SMatrix, SVector};
 
-use super::{Layer, LayerData};
+use super::{Activator, Layer, LayerData};
 
-impl<'a, const INPUTS: usize, const OUTPUTS: usize> Layer<'a, INPUTS, OUTPUTS> {
+impl<'a, const INPUTS: usize, const OUTPUTS: usize> Layer<INPUTS, OUTPUTS> {
     /// The gradient of the layer for a given set of inputs.
-    pub fn gradient(&self, inputs: SVector<f32, INPUTS>) -> SMatrix<f32, OUTPUTS, INPUTS> {
-        self.activation_gradient_matrix(self.weight * inputs) * self.weight
-    }
-
-    /// The equivalent matrix for the activation function for some set of weighted values.
-    fn activation_gradient_matrix(
+    pub fn gradient(
         &self,
-        weighted: SVector<f32, OUTPUTS>,
-    ) -> SMatrix<f32, OUTPUTS, OUTPUTS> {
-        SMatrix::<f32, OUTPUTS, OUTPUTS>::from_fn(|i, j| {
-            if i == j {
-                (self.activation_gradient)(weighted[i])
-            } else {
-                0f32
-            }
-        })
+        inputs: SVector<f32, INPUTS>,
+        activator: &Activator,
+    ) -> SMatrix<f32, OUTPUTS, INPUTS> {
+        activator.activation_gradient_matrix(self.weight * inputs) * self.weight
     }
 
     /// Takes a set of inputs and loss gradients(with respect to the outputs) and calculates LayerData based on them.
@@ -27,16 +17,17 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize> Layer<'a, INPUTS, OUTPUTS> {
         &self,
         loss_gradients: SVector<f32, OUTPUTS>,
         inputs: SVector<f32, INPUTS>,
+        activator: &Activator,
     ) -> LayerData<INPUTS, OUTPUTS> {
         // each bias is shifted by it's respective loss
         let bias_shift = loss_gradients;
 
         // each weight is shifted by it's pre-activation loss gradient multiplied by it's input
-        let weight_shift = self.activation_gradient_matrix(self.weight * inputs)
+        let weight_shift = activator.activation_gradient_matrix(self.weight * inputs)
             * loss_gradients
             * inputs.transpose();
 
-        let gradient = self.gradient(inputs);
+        let gradient = self.gradient(inputs, activator);
         LayerData {
             weight_gradient: weight_shift,
             bias_gradient: bias_shift,
@@ -65,15 +56,10 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize> Layer<'a, INPUTS, OUTPUTS> {
     }
 
     /// Generates a new layer with all values between 0 and 1.
-    pub fn random(
-        activation: &'a dyn Fn(f32) -> f32,
-        activation_gradient: &'a dyn Fn(f32) -> f32,
-    ) -> Self {
+    pub fn random() -> Self {
         Self {
             weight: SMatrix::new_random(),
             bias: SMatrix::new_random(),
-            activation,
-            activation_gradient,
         }
     }
 }
