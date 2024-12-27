@@ -12,7 +12,7 @@ pub fn train<
     data: &'a [(SVector<f32, INPUTS>, SVector<f32, OUTPUTS>)],
     network: &mut Network<'a, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
     learning_rate: f32,
-) {
+) -> f32 {
     let mut loss = 0f32;
 
     let gradients: Vec<TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>> = data
@@ -34,5 +34,5 @@ pub fn train<
 
     network.apply_nudge(-&gradient, learning_rate); // minimise by going the other way
 
-    print!("{}, ", loss / gradients.len() as f32);
+    loss / gradients.len() as f32
 }
