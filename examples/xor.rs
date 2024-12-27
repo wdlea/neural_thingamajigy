@@ -1,7 +1,7 @@
 use std::f32::consts::E;
 
 use nalgebra::{Vector1, Vector2};
-use neural_thingamajigy::{train, Activator, Network};
+use neural_thingamajigy::{loss::squared_error, train, Activator, Network};
 
 fn sigmoid(x: f32) -> f32 {
     1f32 / (1f32 + E.powf(-x))
@@ -33,11 +33,17 @@ fn main() {
 
     print!("epoch, loss, ");
     'training_loop: loop {
-        println!("");
+        println!();
         print!("{}, ", counter);
         counter += 1;
 
-        let mse = train(&data, &mut network, learning_rate, &activator);
+        let mse = train(
+            &data,
+            &mut network,
+            learning_rate,
+            &activator,
+            &squared_error,
+        );
         print!("{:.3}, ", mse);
 
         for (x, y) in data {

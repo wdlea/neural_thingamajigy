@@ -20,7 +20,7 @@ pub struct TrainingInputs<
     pub hidden_output: SVector<f32, WIDTH>,
 }
 
-impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
+impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
     Network<INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
     /// The same thing as evaluate, but returns the inputs to each layer

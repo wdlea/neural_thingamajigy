@@ -2,7 +2,7 @@ use nalgebra::{SMatrix, SVector};
 
 use super::{Activator, Layer, LayerData};
 
-impl<'a, const INPUTS: usize, const OUTPUTS: usize> Layer<INPUTS, OUTPUTS> {
+impl<const INPUTS: usize, const OUTPUTS: usize> Layer<INPUTS, OUTPUTS> {
     /// The gradient of the layer for a given set of inputs.
     pub fn gradient(
         &self,
@@ -20,17 +20,17 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize> Layer<INPUTS, OUTPUTS> {
         activator: &Activator,
     ) -> LayerData<INPUTS, OUTPUTS> {
         // each bias is shifted by it's respective loss
-        let bias_shift = loss_gradients;
+        let bias_gradient = loss_gradients;
 
         // each weight is shifted by it's pre-activation loss gradient multiplied by it's input
-        let weight_shift = activator.activation_gradient_matrix(self.weight * inputs)
+        let weight_gradient = activator.activation_gradient_matrix(self.weight * inputs)
             * loss_gradients
             * inputs.transpose();
 
         let gradient = self.gradient(inputs, activator);
         LayerData {
-            weight_gradient: weight_shift,
-            bias_gradient: bias_shift,
+            weight_gradient,
+            bias_gradient,
             gradient,
             loss_gradient: gradient.transpose() * loss_gradients,
         }
