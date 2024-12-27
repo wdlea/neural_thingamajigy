@@ -20,4 +20,4 @@ pub use network::Network;
 pub use activator::Activator;
 
 #[cfg(feature = "train")]
-pub use train::train;
+pub use train::*;
