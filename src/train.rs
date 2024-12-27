@@ -13,6 +13,8 @@ pub fn train<
     network: &mut Network<'a, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
     learning_rate: f32,
 ) {
+    let mut loss = 0f32;
+
     let gradients: Vec<TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>> = data
         .iter()
         .map(
@@ -21,6 +23,7 @@ pub fn train<
                 let (predicted, training_data) = network.evaluate_training(*x);
 
                 let delta = Y - predicted;
+                loss += delta.norm_squared();
 
                 network.get_gradients(training_data, 2f32 * delta) // squared error
             },
@@ -30,4 +33,6 @@ pub fn train<
     let gradient = TrainingGradients::mean(&gradients); // mean squared error
 
     network.apply_nudge(-&gradient, learning_rate); // minimise by going the other way
+
+    print!("{}, ", loss / gradients.len() as f32);
 }

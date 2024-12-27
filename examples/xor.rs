@@ -1,4 +1,4 @@
-use std::f32::consts::E ;
+use std::f32::consts::E;
 
 use nalgebra::{Vector1, Vector2};
 use neural_thingamajigy::{train, Network};
@@ -24,25 +24,26 @@ fn main() {
     ];
 
     let mut counter = 0;
+    let learning_rate = -0.02f32; // - to minimse, + to maximise
 
+    print!("epoch, loss, ");
     'training_loop: loop {
-        println!("Epoch #{}", counter);
+        println!("");
+        print!("{}, ", counter);
         counter += 1;
 
-        train(&data, &mut network, -0.02f32);
+        train(&data, &mut network, learning_rate);
 
-        for (x, y) in data{
+        for (x, y) in data {
             let predicted = network.evaluate(x);
 
             let difference = (y - predicted).norm();
 
-            if difference >= 0.5{
+            if difference >= 0.5 {
                 continue 'training_loop;
             }
         }
 
         break;
     }
-
-    println!("Something working was generated, yay!");
 }
