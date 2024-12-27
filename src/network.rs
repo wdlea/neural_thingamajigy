@@ -1,6 +1,10 @@
 /// Contains everything relating to training a network.
 mod network_training;
 
+/// This defines the NetworkData type, containing data used in training about an entire network.
+mod network_data;
+pub use network_data::NetworkData;
+
 use nalgebra::SVector;
 
 use crate::layer::Layer;

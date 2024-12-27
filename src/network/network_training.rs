@@ -1,7 +1,7 @@
 use nalgebra::SVector;
 use std::{array::from_fn, iter::zip, mem::MaybeUninit};
 
-use crate::{layer::Layer, layer_data::LayerData, network_data::NetworkData};
+use crate::{layer::Layer, layer::LayerData, network::network_data::NetworkData};
 
 use super::{Network, TrainingInputs};
 

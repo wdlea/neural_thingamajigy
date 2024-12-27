@@ -2,9 +2,6 @@
 
 #![deny(missing_docs, clippy::missing_docs_in_private_items)]
 
-/// This defines the LayerData type, which contains data used in training about a layer.
-mod layer_data;
-
 /// This defines the Layer type, representing a layer of neurons and handles weighting, activation and biases.
 mod layer;
 
@@ -13,9 +10,6 @@ mod network;
 
 /// This holds the train function, allowing users to train their networks via MSE.
 mod train;
-
-/// This defines the NetworkData type, containing data used in training about an entire network.
-mod network_data;
 
 pub use network::Network;
 pub use train::train;

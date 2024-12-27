@@ -1,4 +1,7 @@
-use crate::layer_data::LayerData;
+/// This defines the LayerData type, which contains data used in training about a layer.
+mod layer_data;
+pub use layer_data::LayerData;
+
 use nalgebra::{SMatrix, SVector};
 
 /// A layer of neurons in the network, this contains the weights, biases, activaiton function and it's gradient.
