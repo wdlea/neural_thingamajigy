@@ -4,33 +4,38 @@ use std::{
     ops::{Add, Mul, Neg, Sub},
 };
 
-use crate::CalculusShenanigans;
+use crate::LayerData;
 
-pub struct TrainingGradients<
+/// Data about a network generated via backpropogation used in training.
+pub struct NetworkData<
     const INPUTS: usize,
     const OUTPUTS: usize,
     const WIDTH: usize,
     const HIDDEN: usize,
 > {
-    pub first: CalculusShenanigans<INPUTS, WIDTH>,
-    pub hidden: [CalculusShenanigans<WIDTH, WIDTH>; HIDDEN],
-    pub last: CalculusShenanigans<WIDTH, OUTPUTS>,
+    /// Data about the first layer
+    pub first: LayerData<INPUTS, WIDTH>,
+    /// Data about all the hidden layers
+    pub hidden: [LayerData<WIDTH, WIDTH>; HIDDEN],
+    /// Data about the last layer
+    pub last: LayerData<WIDTH, OUTPUTS>,
 }
 
 impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
-    TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
+    /// Calculates the mean of a slice of network data
     pub fn mean(collection: &[Self]) -> Self {
         &collection.iter().sum::<Self>() * (1f32 / collection.len() as f32)
     }
 }
 
 impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
-    Sum<&'a TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>>
-    for TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    Sum<&'a NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>>
+    for NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
     fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
-        let mut sum = TrainingGradients::<INPUTS, OUTPUTS, WIDTH, HIDDEN>::default();
+        let mut sum = NetworkData::<INPUTS, OUTPUTS, WIDTH, HIDDEN>::default();
 
         for i in iter {
             sum = &sum + i;
@@ -41,7 +46,7 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HI
 }
 
 impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize> Default
-    for TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    for NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
     fn default() -> Self {
         Self {
@@ -53,9 +58,9 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
 }
 
 impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize> Add
-    for &TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    for &NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
-    type Output = TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+    type Output = NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>;
 
     fn add(self, rhs: Self) -> Self::Output {
         Self::Output {
@@ -67,9 +72,9 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
 }
 
 impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize> Neg
-    for &TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    for &NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
-    type Output = TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+    type Output = NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>;
 
     fn neg(self) -> Self::Output {
         Self::Output {
@@ -81,9 +86,9 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
 }
 
 impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize> Sub
-    for &TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    for &NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
-    type Output = TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+    type Output = NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>;
 
     fn sub(self, rhs: Self) -> Self::Output {
         self + &-rhs
@@ -91,9 +96,9 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
 }
 
 impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize> Mul<f32>
-    for &TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    for &NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
-    type Output = TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+    type Output = NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>;
 
     fn mul(self, rhs: f32) -> Self::Output {
         Self::Output {

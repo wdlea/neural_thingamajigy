@@ -1,7 +1,9 @@
 use nalgebra::SVector;
 
-use crate::{Network, TrainingGradients};
+use crate::{Network, NetworkData};
 
+/// Perform 1 training epoch on a network with training data.
+/// `data` is a slice of `(INPUT, OUTPUT)` tuples.
 pub fn train<
     'a,
     const INPUTS: usize,
@@ -15,7 +17,7 @@ pub fn train<
 ) -> f32 {
     let mut loss = 0f32;
 
-    let gradients: Vec<TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>> = data
+    let gradients: Vec<NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>> = data
         .iter()
         .map(
             #[expect(non_snake_case)]
@@ -25,12 +27,12 @@ pub fn train<
                 let delta = Y - predicted;
                 loss += delta.norm_squared();
 
-                network.get_gradients(training_data, 2f32 * delta) // squared error
+                network.get_data(training_data, 2f32 * delta) // squared error
             },
         )
         .collect();
 
-    let gradient = TrainingGradients::mean(&gradients); // mean squared error
+    let gradient = NetworkData::mean(&gradients); // mean squared error
 
     network.apply_nudge(-&gradient, learning_rate); // minimise by going the other way
 

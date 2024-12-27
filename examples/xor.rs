@@ -34,7 +34,7 @@ fn main() {
 
         let mse = train(&data, &mut network, learning_rate);
         print!("{}, ", mse);
-        
+
         for (x, y) in data {
             let predicted = network.evaluate(x);
 

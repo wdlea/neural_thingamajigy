@@ -2,8 +2,13 @@ use std::{array::from_fn, iter::zip, mem::MaybeUninit};
 
 use nalgebra::SVector;
 
-use crate::{CalculusShenanigans, Layer, TrainingGradients};
+use crate::{Layer, LayerData, NetworkData};
 
+/// Represents a network, a sequence of layer operations. Due to limitations in
+/// the implementation, it must have at least 2 layers(first & last). The first
+/// layer has `INPUTS` inputs and `WIDTH` outputs. All hidden layers take `WIDTH`
+/// inputs and produce `WIDTH` outputs. The last layer has `WIDTH` inputs and
+/// produces `OUTPUTS` outputs. There are `HIDDEN`(can be 0) hidden layers.
 pub struct Network<
     'a,
     const INPUTS: usize,
@@ -11,25 +16,33 @@ pub struct Network<
     const WIDTH: usize,
     const HIDDEN: usize,
 > {
+    /// The first layer
     first: Layer<'a, INPUTS, WIDTH>,
+    /// All hidden layers
     hidden: [Layer<'a, WIDTH, WIDTH>; HIDDEN],
+    /// The last layer
     last: Layer<'a, WIDTH, OUTPUTS>,
 }
 
-pub struct TrainingData<
+/// Inputs to each layer of the network, used in training.
+pub struct TrainingInputs<
     const INPUTS: usize,
     const OUTPUTS: usize,
     const WIDTH: usize,
     const HIDDEN: usize,
 > {
+    /// The inputs to the network
     input: SVector<f32, INPUTS>,
+    /// The inputs to each hidden layer
     hidden_inputs: [SVector<f32, WIDTH>; HIDDEN],
+    /// The input to the last layer
     hidden_output: SVector<f32, WIDTH>,
 }
 
 impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
     Network<'a, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
+    /// Evaluates a network given a set of inputs to produce it's outputs.
     pub fn evaluate(&self, inputs: SVector<f32, INPUTS>) -> SVector<f32, OUTPUTS> {
         let hidden_inputs = self.first.through(inputs);
 
@@ -41,12 +54,14 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HI
         self.last.through(current_hidden)
     }
 
+    /// The same thing as evaluate, but returns the inputs to each layer
+    /// as well. This will incur a performance penalty.
     pub fn evaluate_training(
         &self,
         input: SVector<f32, INPUTS>,
     ) -> (
         SVector<f32, OUTPUTS>,
-        TrainingData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+        TrainingInputs<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
     ) {
         let hidden_input = self.first.through(input);
 
@@ -64,7 +79,7 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HI
 
         (
             output,
-            TrainingData {
+            TrainingInputs {
                 input,
                 hidden_inputs,
                 hidden_output: current_hidden,
@@ -72,16 +87,17 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HI
         )
     }
 
-    pub fn get_gradients(
+    /// Computes NetworkData from TrainingInputs and the loss gradient of each output.
+    pub fn get_data(
         &self,
-        data: TrainingData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+        data: TrainingInputs<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
         output_loss_gradients: SVector<f32, OUTPUTS>,
-    ) -> TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN> {
+    ) -> NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN> {
         let last = self
             .last
             .backpropogate(output_loss_gradients, data.hidden_output);
 
-        let mut hidden: [MaybeUninit<CalculusShenanigans<WIDTH, WIDTH>>; HIDDEN] =
+        let mut hidden: [MaybeUninit<LayerData<WIDTH, WIDTH>>; HIDDEN] =
             from_fn(|_| MaybeUninit::uninit()); // every value gets something assigned to it eventually
 
         let mut current_loss_gradient = &last.loss_gradient;
@@ -103,40 +119,42 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HI
 
         let first = self.first.backpropogate(*current_loss_gradient, data.input);
 
-        TrainingGradients {
+        NetworkData {
             first,
             hidden: unsafe {
                 hidden
                     .as_ptr()
-                    .cast::<[CalculusShenanigans<WIDTH, WIDTH>; HIDDEN]>()
+                    .cast::<[LayerData<WIDTH, WIDTH>; HIDDEN]>()
                     .read()
             }, // as MaybeUninit is a union: () | T, the largest type will be T and thus this will be correctly sized and i can do this cast
             last,
         }
     }
 
+    /// Applies a nudge to the network, multiplied by the learning rate.
     pub fn apply_nudge(
         &mut self,
-        nudge: TrainingGradients<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+        nudge: NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
         learning_rate: f32,
     ) {
         self.first.apply_shifts(
-            nudge.first.weight_shift,
-            nudge.first.bias_shift,
+            nudge.first.weight_gradient,
+            nudge.first.bias_gradient,
             learning_rate,
         );
 
         for (layer, shift) in zip(&mut self.hidden, nudge.hidden) {
-            layer.apply_shifts(shift.weight_shift, shift.bias_shift, learning_rate);
+            layer.apply_shifts(shift.weight_gradient, shift.bias_gradient, learning_rate);
         }
 
         self.last.apply_shifts(
-            nudge.last.weight_shift,
-            nudge.last.bias_shift,
+            nudge.last.weight_gradient,
+            nudge.last.bias_gradient,
             learning_rate,
         );
     }
 
+    /// Generates a random network with random(0-1) weights and biases.
     pub fn random(
         activation: &'a dyn Fn(f32) -> f32,
         activation_gradient: &'a dyn Fn(f32) -> f32,
