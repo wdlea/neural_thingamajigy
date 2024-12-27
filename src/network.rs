@@ -102,11 +102,8 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HI
 
         let mut current_loss_gradient = &last.loss_gradient;
 
-        let mut initialized: Vec<bool> = (0..HIDDEN).map(|_| false).collect();
-
         // This loop assigns something to every element of HIDDEN, so the uninitialized memory is eventually replaced with acceptable values
         for i in (0..HIDDEN).rev() {
-            initialized[i] = true;
             hidden[i]
                 .write(self.hidden[i].backpropogate(*current_loss_gradient, data.hidden_inputs[i]));
 
@@ -114,8 +111,6 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HI
             current_loss_gradient = unsafe { &hidden[i].assume_init_ref().loss_gradient };
             // this value just was assigned and nothing else will change it, thus it is safe to reference
         }
-
-        assert!(initialized.iter().all(|v| *v));
 
         let first = self.first.backpropogate(*current_loss_gradient, data.input);
 
