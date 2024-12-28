@@ -74,6 +74,7 @@ name = "neural_thingamajigy"
 version = "0.1.0"
 dependencies = [
  "nalgebra",
+ "rand",
  "serde",
  "serde_arrays",
 ]

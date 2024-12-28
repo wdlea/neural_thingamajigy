@@ -31,14 +31,30 @@ fn main() {
     let mut counter = 0;
     let learning_rate = -0.02f32; // - to minimse, + to maximise
 
+    // Random Batching
+    // let mut rng = rand::rngs::SmallRng::from_entropy();
+
     print!("epoch, loss, ");
     'training_loop: loop {
         println!();
         print!("{}, ", counter);
         counter += 1;
 
+        // Random Batching
+        // let mse = train(
+        //     RandomSampler {
+        //         data: &data,
+        //         rng: &mut rng,
+        //     }
+        //     .take(4),
+        //     &mut network,
+        //     learning_rate,
+        //     &activator,
+        //     &squared_error,
+        // );
+
         let mse = train(
-            &data,
+            data.iter(),
             &mut network,
             learning_rate,
             &activator,
