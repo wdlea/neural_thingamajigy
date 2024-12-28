@@ -24,11 +24,11 @@ pub struct AdamOptimiser<
     const WIDTH: usize,
     const HIDDEN: usize,
 > {
-    momemtum: NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+    momentum: NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
     velocity: NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
 
     learning_rate: f32,  // alpha
-    momemtum_mixer: f32, // beta[1]
+    momentum_mixer: f32, // beta[1]
     velocity_mixer: f32, // beta[2]
 
     accumulated_momentum: f32, // beta[1] ^ t
@@ -38,14 +38,14 @@ pub struct AdamOptimiser<
 impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
     AdamOptimiser<INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
-    fn new(learning_rate: f32, momemtum_mixer: f32, velocity_mixer: f32) -> Self {
+    fn new(learning_rate: f32, momentum_mixer: f32, velocity_mixer: f32) -> Self {
         Self {
-            momemtum: NetworkData::default(),
+            momentum: NetworkData::default(),
             velocity: NetworkData::default(),
             learning_rate,
-            momemtum_mixer,
+            momentum_mixer,
             velocity_mixer,
-            accumulated_momentum: momemtum_mixer,
+            accumulated_momentum: momentum_mixer,
             accumulated_velocity: velocity_mixer,
         }
     }
@@ -67,17 +67,17 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
         gradient: &NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
     ) -> NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN> {
         // Calculate M[t+1] and V[t+1] respectively:
-        self.momemtum =
-            &(&self.momemtum * self.momemtum_mixer) + &(gradient * (1f32 - self.momemtum_mixer));
+        self.momentum =
+            &(&self.momentum * self.momentum_mixer) + &(gradient * (1f32 - self.momentum_mixer));
         self.velocity = &(&self.velocity * self.velocity_mixer)
             + &(&gradient.element_square() * (1f32 - self.velocity_mixer));
 
         // Calculate M^ [t+1] and V^ [t+1] respectively:
-        let corrected_momentum = &self.momemtum * (1f32 / (1f32 - self.accumulated_momentum));
+        let corrected_momentum = &self.momentum * (1f32 / (1f32 - self.accumulated_momentum));
         let corrected_velocity = &self.velocity * (1f32 / (1f32 - self.accumulated_velocity));
 
         // Update accumulated values
-        self.accumulated_momentum *= self.momemtum_mixer;
+        self.accumulated_momentum *= self.momentum_mixer;
         self.accumulated_velocity *= self.velocity_mixer;
 
         &corrected_momentum
