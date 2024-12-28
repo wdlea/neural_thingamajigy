@@ -28,6 +28,45 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
     pub fn mean(collection: &[Self]) -> Self {
         &collection.iter().sum::<Self>() * (1f32 / collection.len() as f32)
     }
+
+    /// Performs the square operation "element wise"
+    /// As described in: https://arxiv.org/pdf/1412.6980
+    pub fn element_square(&self) -> Self {
+        Self {
+            first: self.first.element_square(),
+            hidden: from_fn(|i| self.hidden[i].element_square()),
+            last: self.last.element_square(),
+        }
+    }
+
+    /// Performs the square root operation "element wise"
+    /// As described in: https://arxiv.org/pdf/1412.6980
+    pub fn element_sqrt(&self) -> Self {
+        Self {
+            first: self.first.element_sqrt(),
+            hidden: from_fn(|i| self.hidden[i].element_sqrt()),
+            last: self.last.element_sqrt(),
+        }
+    }
+
+    /// Performs "element wise" division
+    /// As described in: https://arxiv.org/pdf/1412.6980
+    pub fn element_div(&self, other: &Self) -> Self {
+        Self {
+            first: self.first.element_div(&other.first),
+            hidden: from_fn(|i| self.hidden[i].element_div(&other.hidden[i])),
+            last: self.last.element_div(&other.last),
+        }
+    }
+
+    /// Returns a NetworkData with all values set to f32::EPSILON
+    pub fn epsilon() -> Self {
+        Self {
+            first: LayerData::epsilon(),
+            hidden: from_fn(|_| LayerData::epsilon()),
+            last: LayerData::epsilon(),
+        }
+    }
 }
 
 impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>

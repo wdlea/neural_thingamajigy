@@ -1,6 +1,7 @@
+use core::f32;
 use std::ops::{Add, Mul, Neg, Sub};
 
-use nalgebra::{SMatrix, SVector};
+use nalgebra::{SMatrix, SVector, Scalar};
 
 /// Data about a layer generated via backpropogation used in training.
 pub struct LayerData<const INPUTS: usize, const OUTPUTS: usize> {
@@ -15,6 +16,59 @@ pub struct LayerData<const INPUTS: usize, const OUTPUTS: usize> {
 
     /// The gradient of the inputs with respect to the loss function.
     pub loss_gradient: SVector<f32, INPUTS>,
+}
+
+/// Performs the square root operation "element wise"
+/// As described in: https://arxiv.org/pdf/1412.6980
+fn matrix_component_sqrt<T: Scalar + Mul<T, Output = T> + Copy, const R: usize, const C: usize>(
+    mat: SMatrix<T, R, C>,
+) -> SMatrix<T, R, C> {
+    SMatrix::<T, R, C>::from_fn(|i, j| mat[(i, j)] * mat[(i, j)])
+}
+
+impl<const INPUTS: usize, const OUTPUTS: usize> LayerData<INPUTS, OUTPUTS> {
+    /// Performs the square operation "element wise"
+    /// As described in: https://arxiv.org/pdf/1412.6980
+    pub fn element_square(&self) -> Self {
+        Self {
+            weight_gradient: self.weight_gradient.component_mul(&self.weight_gradient),
+            bias_gradient: self.bias_gradient.component_mul(&self.bias_gradient),
+            gradient: self.gradient.component_mul(&self.gradient),
+            loss_gradient: self.loss_gradient.component_mul(&self.loss_gradient),
+        }
+    }
+
+    /// Performs the square root operation "element wise"
+    /// As described in: https://arxiv.org/pdf/1412.6980
+    pub fn element_sqrt(&self) -> Self {
+        Self {
+            weight_gradient: matrix_component_sqrt(self.weight_gradient),
+            bias_gradient: matrix_component_sqrt(self.bias_gradient),
+            gradient: matrix_component_sqrt(self.gradient),
+            loss_gradient: matrix_component_sqrt(self.loss_gradient),
+        }
+    }
+
+    /// Performs "element wise" division
+    /// As described in: https://arxiv.org/pdf/1412.6980
+    pub fn element_div(&self, other: &Self) -> Self {
+        Self {
+            weight_gradient: self.weight_gradient.component_div(&other.weight_gradient),
+            bias_gradient: self.bias_gradient.component_div(&other.bias_gradient),
+            gradient: self.gradient.component_div(&other.gradient),
+            loss_gradient: self.loss_gradient.component_div(&other.loss_gradient),
+        }
+    }
+
+    /// Returns a LayerData with all values set to f32::EPSILON
+    pub fn epsilon() -> Self {
+        Self {
+            weight_gradient: SMatrix::from_fn(|_, _| f32::EPSILON),
+            bias_gradient: SMatrix::from_fn(|_, _| f32::EPSILON),
+            gradient: SMatrix::from_fn(|_, _| f32::EPSILON),
+            loss_gradient: SMatrix::from_fn(|_, _| f32::EPSILON),
+        }
+    }
 }
 
 impl<const INPUTS: usize, const OUTPUTS: usize> Default for LayerData<INPUTS, OUTPUTS> {

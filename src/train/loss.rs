@@ -9,7 +9,7 @@ pub fn squared_error<const N: usize>(
     actual: &SVector<f32, N>,
     predicted: &SVector<f32, N>,
 ) -> (f32, SVector<f32, N>) {
-    let delta = actual - predicted;
+    let delta = predicted - actual;
     (delta.norm_squared(), 2f32 * delta)
 }
 
@@ -18,6 +18,6 @@ pub fn absoloute_error<const N: usize>(
     actual: &SVector<f32, N>,
     predicted: &SVector<f32, N>,
 ) -> (f32, SVector<f32, N>) {
-    let delta = actual - predicted;
+    let delta = predicted - actual;
     (delta.norm(), delta.normalize())
 }

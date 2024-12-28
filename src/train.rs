@@ -1,8 +1,12 @@
 /// Defines LossFunction and some common instances
 pub mod loss;
 
+/// Defines Optimiser trait and ADAM
+pub mod optimiser;
+
 use loss::LossFunction;
 use nalgebra::SVector;
+use optimiser::Optimiser;
 use rand::Rng;
 
 pub use crate::{layer::LayerData, network::NetworkData};
@@ -21,9 +25,9 @@ pub fn train<
 >(
     data: impl Iterator<Item = &'a (SVector<f32, INPUTS>, SVector<f32, OUTPUTS>)>,
     network: &mut Network<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
-    learning_rate: f32,
     activator: &Activator,
     loss_function: &LossFunction<OUTPUTS>,
+    optimiser: &mut impl Optimiser<INPUTS, OUTPUTS, WIDTH, HIDDEN>
 ) -> f32 {
     let mut total_loss = 0f32;
 
@@ -42,8 +46,10 @@ pub fn train<
         .collect();
 
     let gradient = NetworkData::mean(&gradients); // mean squared error
+    
+    let step = optimiser.transform(&gradient);
 
-    network.apply_nudge(-&gradient, learning_rate); // minimise by going the other way
+    network.apply_nudge(step);
 
     total_loss / gradients.len() as f32
 }
