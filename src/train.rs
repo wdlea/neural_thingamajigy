@@ -40,7 +40,7 @@ pub fn train<
                 let (instance_loss, loss_gradient) = loss_function(Y, &predicted);
                 total_loss += instance_loss;
 
-                network.get_data(training_data, loss_gradient, activator) // squared error
+                network.get_data(training_data, loss_gradient, activator)
             },
         )
         .collect();

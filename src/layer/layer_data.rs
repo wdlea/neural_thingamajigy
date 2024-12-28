@@ -1,4 +1,3 @@
-use core::f32;
 use std::ops::{Add, Mul, Neg, Sub};
 
 use nalgebra::{SMatrix, SVector, Scalar};

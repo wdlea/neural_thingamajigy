@@ -38,7 +38,8 @@ pub struct AdamOptimiser<
 impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
     AdamOptimiser<INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
-    fn new(learning_rate: f32, momentum_mixer: f32, velocity_mixer: f32) -> Self {
+    /// Creates a new AdamOptimiser with the given hyperparameters
+    pub fn new(learning_rate: f32, momentum_mixer: f32, velocity_mixer: f32) -> Self {
         Self {
             momentum: NetworkData::default(),
             velocity: NetworkData::default(),
@@ -83,5 +84,25 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
         &corrected_momentum
             .element_div(&(&corrected_velocity.element_sqrt() + &NetworkData::epsilon()))
             * -self.learning_rate
+    }
+}
+
+/// A Stocahstic Gradient Descent optimser
+pub struct SGDOptimsier<
+    const INPUTS: usize,
+    const OUTPUTS: usize,
+    const WIDTH: usize,
+    const HIDDEN: usize,
+> {
+    /// The learning rate
+    pub learning_rate: f32,
+}
+
+impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize> Optimiser<INPUTS, OUTPUTS, WIDTH, HIDDEN> for SGDOptimsier<INPUTS, OUTPUTS, WIDTH, HIDDEN> {
+    fn transform(
+        &mut self,
+        gradient: &NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+    ) -> NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN> {
+        gradient * -self.learning_rate
     }
 }

@@ -1,7 +1,9 @@
 use std::f32::consts::E;
 
 use nalgebra::{Vector1, Vector2};
-use neural_thingamajigy::{loss::squared_error, optimiser::AdamOptimiser, train, Activator, Network};
+use neural_thingamajigy::{
+    loss::squared_error, optimiser::{AdamOptimiser, SGDOptimsier}, train, Activator, Network, RandomSampler,
+};
 
 fn sigmoid(x: f32) -> f32 {
     1f32 / (1f32 + E.powf(-x))
@@ -19,7 +21,7 @@ fn main() {
         activation_gradient: Box::new(dsigmoid_dx),
     };
 
-    let mut network = Network::<2, 1, 2, 1>::random();
+    let mut network = Network::<2, 1, 5, 2>::random();
 
     let data = [
         (Vector2::new(0f32, 0f32), Vector1::new(0f32)),
@@ -31,9 +33,10 @@ fn main() {
     let mut counter = 0;
 
     // Random Batching
-    // let mut rng = rand::rngs::SmallRng::from_entropy();
+    // let mut rng = rand::rngs::OsRng;
 
-    let mut adam = AdamOptimiser::default();
+    let mut opt = AdamOptimiser::new(0.001, 0.9, 0.999);
+    // let mut opt = SGDOptimsier{learning_rate: 0.1};
 
     print!("epoch, loss, ");
     'training_loop: loop {
@@ -41,17 +44,17 @@ fn main() {
         print!("{}, ", counter);
         counter += 1;
 
-        // Random Batching
+        // // Random Batching
         // let mse = train(
         //     RandomSampler {
         //         data: &data,
         //         rng: &mut rng,
         //     }
-        //     .take(4),
+        //     .take(10),
         //     &mut network,
-        //     learning_rate,
         //     &activator,
         //     &squared_error,
+        //     &mut opt,
         // );
 
         let mse = train(
@@ -59,7 +62,7 @@ fn main() {
             &mut network,
             &activator,
             &squared_error,
-            &mut adam,
+            &mut opt,
         );
         print!("{:.3}, ", mse);
 
@@ -67,7 +70,6 @@ fn main() {
             let predicted = network.evaluate(x, &activator);
 
             let difference = (y - predicted).norm();
-
             if difference >= 0.5 {
                 continue 'training_loop;
             }
