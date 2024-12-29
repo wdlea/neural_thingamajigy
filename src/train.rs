@@ -7,7 +7,6 @@ pub mod optimiser;
 use loss::LossFunction;
 use nalgebra::SVector;
 use optimiser::Optimiser;
-use rand::Rng;
 
 pub use crate::{layer::LayerData, network::NetworkData};
 use crate::{Activator, Network};
@@ -52,23 +51,4 @@ pub fn train<
     network.apply_nudge(step);
 
     total_loss / gradients.len() as f32
-}
-
-/// Utility for sampling data randomly
-pub struct RandomSampler<'a, const INPUTS: usize, const OUTPUTS: usize, R: Rng> {
-    /// A reference to the data to sample
-    pub data: &'a [(SVector<f32, INPUTS>, SVector<f32, OUTPUTS>)],
-    /// The RNG to use for sampling
-    pub rng: &'a mut R,
-}
-
-impl<'a, const INPUTS: usize, const OUTPUTS: usize, R: Rng> Iterator
-    for RandomSampler<'a, INPUTS, OUTPUTS, R>
-{
-    type Item = &'a (SVector<f32, INPUTS>, SVector<f32, OUTPUTS>);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let index = self.rng.gen::<usize>() % self.data.len();
-        Some(&self.data[index])
-    }
 }

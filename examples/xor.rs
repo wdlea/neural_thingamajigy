@@ -41,19 +41,6 @@ fn main() {
         print!("{}, ", counter);
         counter += 1;
 
-        // // Random Batching
-        // let mse = train(
-        //     RandomSampler {
-        //         data: &data,
-        //         rng: &mut OsRng,
-        //     }
-        //     .take(10),
-        //     &mut network,
-        //     &activator,
-        //     &squared_error,
-        //     &mut adam,
-        // );
-
         let mse = train(
             data.iter(),
             &mut network,
