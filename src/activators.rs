@@ -40,3 +40,20 @@ impl Activator for Sigmoid {
         sigma * (1f32 - sigma)
     }
 }
+
+/// The Rectified Linear Unit activation function
+pub struct Relu;
+
+impl Activator for Relu {
+    fn activation(&self, x: f32) -> f32 {
+        x.max(0f32)
+    }
+
+    fn activation_gradient(&self, x: f32) -> f32 {
+        if x >= 0f32{ // in the rare case that x == 0, I think a gradient of 1 makes more sense
+            1f32
+        }else{
+            0f32
+        }
+    }
+}
