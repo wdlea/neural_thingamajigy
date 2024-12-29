@@ -33,7 +33,6 @@ fn main() {
     let mut counter = 0;
 
     let mut opt = AdamOptimiser::new(0.001, 0.9, 0.999);
-    // let mut opt = SGDOptimsier{learning_rate: 0.1};
 
     print!("epoch, loss, ");
     'training_loop: loop {

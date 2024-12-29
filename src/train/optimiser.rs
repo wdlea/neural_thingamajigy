@@ -95,25 +95,3 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
         )
     }
 }
-
-/// A Stocahstic Gradient Descent optimser
-pub struct SGDOptimsier<
-    const INPUTS: usize,
-    const OUTPUTS: usize,
-    const WIDTH: usize,
-    const HIDDEN: usize,
-> {
-    /// The learning rate
-    pub learning_rate: f32,
-}
-
-impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
-    Optimiser<INPUTS, OUTPUTS, WIDTH, HIDDEN> for SGDOptimsier<INPUTS, OUTPUTS, WIDTH, HIDDEN>
-{
-    fn transform(
-        &mut self,
-        gradient: &NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
-    ) -> NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN> {
-        gradient * -self.learning_rate
-    }
-}
