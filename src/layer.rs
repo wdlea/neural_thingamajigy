@@ -13,7 +13,7 @@ use nalgebra::{SMatrix, SVector};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::Activator;
+use crate::activators::Activator;
 
 /// A layer of neurons in the network, this contains the weights, biases, activaiton function and it's gradient.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -29,11 +29,11 @@ impl<const INPUTS: usize, const OUTPUTS: usize> Layer<INPUTS, OUTPUTS> {
     pub fn through(
         &self,
         inputs: SVector<f32, INPUTS>,
-        activator: &Activator,
+        activator: &impl Activator,
     ) -> SVector<f32, OUTPUTS> {
         let weighted = self.weight * inputs;
         let activated = SVector::<f32, OUTPUTS>::from_iterator(
-            weighted.iter().map(|v| (activator.activation)(*v)),
+            weighted.iter().map(|v| activator.activation(*v)),
         );
 
         activated + self.bias

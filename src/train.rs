@@ -8,8 +8,8 @@ use loss::LossFunction;
 use nalgebra::SVector;
 use optimiser::Optimiser;
 
+use crate::{activators::Activator, Network};
 pub use crate::{layer::LayerData, network::NetworkData};
-use crate::{Activator, Network};
 
 /// Perform 1 training epoch on a network with training data.
 /// `data` is a slice of `(INPUT, OUTPUT)` tuples. This returns
@@ -24,7 +24,7 @@ pub fn train<
 >(
     data: impl Iterator<Item = &'a (SVector<f32, INPUTS>, SVector<f32, OUTPUTS>)>,
     network: &mut Network<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
-    activator: &Activator,
+    activator: &impl Activator,
     loss_function: &LossFunction<OUTPUTS>,
     optimiser: &mut impl Optimiser<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
 ) -> f32 {

@@ -1,25 +1,10 @@
-use std::f32::consts::E;
-
 use nalgebra::{Vector1, Vector2};
 use neural_thingamajigy::{
-    loss::squared_error, optimiser::AdamOptimiser, train, Activator, Network,
+    activators, loss::squared_error, optimiser::AdamOptimiser, train, Network,
 };
 
-fn sigmoid(x: f32) -> f32 {
-    1f32 / (1f32 + E.powf(-x))
-}
-
-fn dsigmoid_dx(x: f32) -> f32 {
-    let sigma = sigmoid(x);
-
-    sigma * (1f32 - sigma)
-}
-
 fn main() {
-    let activator = Activator {
-        activation: Box::new(sigmoid),
-        activation_gradient: Box::new(dsigmoid_dx),
-    };
+    let activator = activators::Sigmoid;
 
     let mut network = Network::<2, 1, 5, 2>::random();
 
@@ -32,7 +17,7 @@ fn main() {
 
     let mut counter = 0;
 
-    let mut opt = AdamOptimiser::new(0.001, 0.9, 0.999);
+    let mut opt = AdamOptimiser::default();
 
     print!("epoch, loss, ");
     'training_loop: loop {

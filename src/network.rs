@@ -13,7 +13,7 @@ use nalgebra::SVector;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::{layer::Layer, Activator};
+use crate::{activators::Activator, layer::Layer};
 
 /// Represents a network, a sequence of layer operations. Due to limitations in
 /// the implementation, it must have at least 2 layers(first & last). The first
@@ -43,7 +43,7 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
     pub fn evaluate(
         &self,
         inputs: SVector<f32, INPUTS>,
-        activator: &Activator,
+        activator: &impl Activator,
     ) -> SVector<f32, OUTPUTS> {
         let hidden_inputs = self.first.through(inputs, activator);
 

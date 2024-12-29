@@ -1,7 +1,11 @@
 use nalgebra::SVector;
 use std::{array::from_fn, iter::zip, mem::MaybeUninit};
 
-use crate::{layer::Layer, layer::LayerData, network::network_data::NetworkData, Activator};
+use crate::{
+    activators::Activator,
+    layer::{Layer, LayerData},
+    network::network_data::NetworkData,
+};
 
 use super::Network;
 
@@ -28,7 +32,7 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
     pub fn evaluate_training(
         &self,
         input: SVector<f32, INPUTS>,
-        activator: &Activator,
+        activator: &impl Activator,
     ) -> (
         SVector<f32, OUTPUTS>,
         TrainingInputs<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
@@ -62,7 +66,7 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
         &self,
         data: TrainingInputs<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
         output_loss_gradients: SVector<f32, OUTPUTS>,
-        activator: &Activator,
+        activator: &impl Activator,
     ) -> (
         NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
         SVector<f32, INPUTS>,
