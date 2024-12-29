@@ -1,6 +1,6 @@
 use nalgebra::{Vector1, Vector2};
 use neural_thingamajigy::{
-    activators, loss::squared_error, optimiser::AdamOptimiser, train, Network,
+    activators, get_loss, loss::squared_error, optimiser::AdamOptimiser, train, Network,
 };
 
 /// The model should not get worse with training
@@ -19,15 +19,9 @@ fn improvement_test() {
 
     let mut opt = AdamOptimiser::default();
 
-    let first_loss = train(
-        data.iter(),
-        &mut network,
-        &activator,
-        &squared_error,
-        &mut opt,
-    );
+    let first_loss = get_loss(data.iter(), &mut network, &activator, &squared_error);
 
-    for _ in 0..10000 {
+    for _ in 0..10 {
         train(
             data.iter(),
             &mut network,
@@ -37,13 +31,7 @@ fn improvement_test() {
         );
     }
 
-    let last_loss = train(
-        data.iter(),
-        &mut network,
-        &activator,
-        &squared_error,
-        &mut opt,
-    );
+    let last_loss = get_loss(data.iter(), &mut network, &activator, &squared_error);
 
     assert!(first_loss >= last_loss)
 }

@@ -52,3 +52,27 @@ pub fn train<
 
     total_loss / gradients.len() as f32
 }
+
+/// Calculates the average loss for a network from a set of data
+pub fn get_loss<
+    'a,
+    const INPUTS: usize,
+    const OUTPUTS: usize,
+    const WIDTH: usize,
+    const HIDDEN: usize,
+>(
+    data: impl Iterator<Item = &'a (SVector<f32, INPUTS>, SVector<f32, OUTPUTS>)>,
+    network: &Network<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+    activator: &impl Activator,
+    loss_function: &LossFunction<OUTPUTS>,
+) -> f32 {
+    let mut counter = 0usize;
+    data.inspect(|_| counter += 1)
+        .map(|(input, expected)| {
+            let predicted = network.evaluate(*input, activator);
+
+            loss_function(expected, &predicted).0
+        })
+        .sum::<f32>()
+        / counter as f32
+}
