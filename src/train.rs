@@ -40,12 +40,12 @@ pub fn train<
                 let (instance_loss, loss_gradient) = loss_function(Y, &predicted);
                 total_loss += instance_loss;
 
-                network.get_data(training_data, loss_gradient, activator)
+                network.get_data(training_data, loss_gradient, activator).0 // discard network input loss as this isn't deep learning
             },
         )
         .collect();
 
-    let gradient = NetworkData::mean(&gradients); // mean squared error
+    let gradient = NetworkData::mean(&gradients); // mean error
 
     let step = optimiser.transform(&gradient);
 

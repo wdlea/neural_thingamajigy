@@ -18,7 +18,7 @@ impl<const INPUTS: usize, const OUTPUTS: usize> Layer<INPUTS, OUTPUTS> {
         loss_gradients: SVector<f32, OUTPUTS>,
         inputs: SVector<f32, INPUTS>,
         activator: &Activator,
-    ) -> LayerData<INPUTS, OUTPUTS> {
+    ) -> (LayerData<INPUTS, OUTPUTS>, SVector<f32, INPUTS>) {
         // each bias is shifted by it's respective loss
         let bias_gradient = loss_gradients;
 
@@ -28,11 +28,13 @@ impl<const INPUTS: usize, const OUTPUTS: usize> Layer<INPUTS, OUTPUTS> {
             * inputs.transpose();
 
         let gradient = self.gradient(inputs, activator);
-        LayerData {
-            weight_gradient,
-            bias_gradient,
-            loss_gradient: gradient.transpose() * loss_gradients,
-        }
+        (
+            LayerData {
+                weight_gradient,
+                bias_gradient,
+            },
+            gradient.transpose() * loss_gradients,
+        )
     }
 
     /// Applies weight and bias shifts, normalized and multiplied by the learning rate.
