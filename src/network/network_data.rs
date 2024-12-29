@@ -29,42 +29,31 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
         &collection.iter().sum::<Self>() * (1f32 / collection.len() as f32)
     }
 
-    /// Performs the square operation "element wise"
-    /// As described in: https://arxiv.org/pdf/1412.6980
-    pub fn element_square(&self) -> Self {
+    /// Creates a NetworkData with all underlying values set to `value`
+    pub fn all(value: f32) -> Self {
         Self {
-            first: self.first.element_square(),
-            hidden: from_fn(|i| self.hidden[i].element_square()),
-            last: self.last.element_square(),
+            first: LayerData::all(value),
+            hidden: from_fn(|_| LayerData::all(value)),
+            last: LayerData::all(value),
         }
     }
 
-    /// Performs the square root operation "element wise"
-    /// As described in: https://arxiv.org/pdf/1412.6980
-    pub fn element_sqrt(&self) -> Self {
+    /// Transforms all underlying values using `f`
+    #[must_use]
+    pub fn map(&self, f: &impl Fn(f32) -> f32) -> Self {
         Self {
-            first: self.first.element_sqrt(),
-            hidden: from_fn(|i| self.hidden[i].element_sqrt()),
-            last: self.last.element_sqrt(),
+            first: self.first.map(f),
+            hidden: from_fn(|i| self.hidden[i].map(f)),
+            last: self.last.map(f),
         }
     }
 
-    /// Performs "element wise" division
-    /// As described in: https://arxiv.org/pdf/1412.6980
-    pub fn element_div(&self, other: &Self) -> Self {
+    /// Performs f on corresponding entries in lhs and rhs to generate a new matrix with the results
+    pub fn binary_elementwise(lhs: &Self, rhs: &Self, f: &impl Fn(f32, f32) -> f32) -> Self {
         Self {
-            first: self.first.element_div(&other.first),
-            hidden: from_fn(|i| self.hidden[i].element_div(&other.hidden[i])),
-            last: self.last.element_div(&other.last),
-        }
-    }
-
-    /// Returns a NetworkData with all values set to f32::EPSILON
-    pub fn epsilon() -> Self {
-        Self {
-            first: LayerData::epsilon(),
-            hidden: from_fn(|_| LayerData::epsilon()),
-            last: LayerData::epsilon(),
+            first: LayerData::binary_elementwise(&lhs.first, &rhs.first, f),
+            hidden: from_fn(|i| LayerData::binary_elementwise(&lhs.hidden[i], &rhs.hidden[i], f)),
+            last: LayerData::binary_elementwise(&lhs.last, &rhs.last, f),
         }
     }
 }

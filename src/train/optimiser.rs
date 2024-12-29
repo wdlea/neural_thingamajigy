@@ -71,7 +71,7 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
         self.momentum =
             &(&self.momentum * self.momentum_mixer) + &(gradient * (1f32 - self.momentum_mixer));
         self.velocity = &(&self.velocity * self.velocity_mixer)
-            + &(&gradient.element_square() * (1f32 - self.velocity_mixer));
+            + &(&gradient.map(&|v| v * v) * (1f32 - self.velocity_mixer));
 
         // Calculate M^ [t+1] and V^ [t+1] respectively:
         let corrected_momentum = &self.momentum * (1f32 / (1f32 - self.accumulated_momentum));
@@ -81,9 +81,11 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
         self.accumulated_momentum *= self.momentum_mixer;
         self.accumulated_velocity *= self.velocity_mixer;
 
-        &corrected_momentum
-            .element_div(&(&corrected_velocity.element_sqrt() + &NetworkData::epsilon()))
-            * -self.learning_rate
+        NetworkData::binary_elementwise(
+            &corrected_momentum,
+            &(&corrected_velocity.map(&|v: f32| v.sqrt()) + &NetworkData::all(f32::EPSILON)),
+            &|lhs, rhs| lhs / rhs * -self.learning_rate,
+        )
     }
 }
 

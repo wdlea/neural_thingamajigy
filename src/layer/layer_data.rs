@@ -17,55 +17,45 @@ pub struct LayerData<const INPUTS: usize, const OUTPUTS: usize> {
     pub loss_gradient: SVector<f32, INPUTS>,
 }
 
-/// Performs the square root operation "element wise"
-/// As described in: https://arxiv.org/pdf/1412.6980
-fn matrix_component_sqrt<T: Scalar + Mul<T, Output = T> + Copy, const R: usize, const C: usize>(
-    mat: SMatrix<T, R, C>,
-) -> SMatrix<T, R, C> {
-    SMatrix::<T, R, C>::from_fn(|i, j| mat[(i, j)] * mat[(i, j)])
+/// Performs f(lhs, rhs) on every value to generate a new Matrix
+fn mat_binary_elementwise<T: Copy, O: Scalar, const R: usize, const C: usize>(
+    lhs: &SMatrix<T, R, C>,
+    rhs: &SMatrix<T, R, C>,
+    f: &impl Fn(T, T) -> O,
+) -> SMatrix<O, R, C> {
+    SMatrix::from_fn(|i, j| f(lhs[(i, j)], rhs[(i, j)]))
 }
 
 impl<const INPUTS: usize, const OUTPUTS: usize> LayerData<INPUTS, OUTPUTS> {
-    /// Performs the square operation "element wise"
-    /// As described in: https://arxiv.org/pdf/1412.6980
-    pub fn element_square(&self) -> Self {
+    /// Creates a LayerData with all values(within *all* matrices) set to `value`
+    pub fn all(value: f32) -> Self {
         Self {
-            weight_gradient: self.weight_gradient.component_mul(&self.weight_gradient),
-            bias_gradient: self.bias_gradient.component_mul(&self.bias_gradient),
-            gradient: self.gradient.component_mul(&self.gradient),
-            loss_gradient: self.loss_gradient.component_mul(&self.loss_gradient),
+            weight_gradient: SMatrix::from_fn(|_, _| value),
+            bias_gradient: SMatrix::from_fn(|_, _| value),
+            gradient: SMatrix::from_fn(|_, _| value),
+            loss_gradient: SMatrix::from_fn(|_, _| value),
         }
     }
 
-    /// Performs the square root operation "element wise"
-    /// As described in: https://arxiv.org/pdf/1412.6980
-    pub fn element_sqrt(&self) -> Self {
+    /// Performs .map(f) on *all* matrices contained by LayerData
+    #[must_use]
+    pub fn map(&self, f: &impl Fn(f32) -> f32) -> Self {
         Self {
-            weight_gradient: matrix_component_sqrt(self.weight_gradient),
-            bias_gradient: matrix_component_sqrt(self.bias_gradient),
-            gradient: matrix_component_sqrt(self.gradient),
-            loss_gradient: matrix_component_sqrt(self.loss_gradient),
+            weight_gradient: self.weight_gradient.map(f),
+            bias_gradient: self.bias_gradient.map(f),
+            gradient: self.gradient.map(f),
+            loss_gradient: self.loss_gradient.map(f),
         }
     }
 
-    /// Performs "element wise" division
-    /// As described in: https://arxiv.org/pdf/1412.6980
-    pub fn element_div(&self, other: &Self) -> Self {
+    /// Performs f(lhs, rhs) on every value to generate a new LayerData
+    #[must_use]
+    pub fn binary_elementwise(lhs: &Self, rhs: &Self, f: &impl Fn(f32, f32) -> f32) -> Self {
         Self {
-            weight_gradient: self.weight_gradient.component_div(&other.weight_gradient),
-            bias_gradient: self.bias_gradient.component_div(&other.bias_gradient),
-            gradient: self.gradient.component_div(&other.gradient),
-            loss_gradient: self.loss_gradient.component_div(&other.loss_gradient),
-        }
-    }
-
-    /// Returns a LayerData with all values set to f32::EPSILON
-    pub fn epsilon() -> Self {
-        Self {
-            weight_gradient: SMatrix::from_fn(|_, _| f32::EPSILON),
-            bias_gradient: SMatrix::from_fn(|_, _| f32::EPSILON),
-            gradient: SMatrix::from_fn(|_, _| f32::EPSILON),
-            loss_gradient: SMatrix::from_fn(|_, _| f32::EPSILON),
+            weight_gradient: mat_binary_elementwise(&lhs.weight_gradient, &rhs.weight_gradient, f),
+            bias_gradient: mat_binary_elementwise(&lhs.bias_gradient, &rhs.bias_gradient, f),
+            gradient: mat_binary_elementwise(&lhs.gradient, &rhs.gradient, f),
+            loss_gradient: mat_binary_elementwise(&lhs.loss_gradient, &rhs.loss_gradient, f),
         }
     }
 }

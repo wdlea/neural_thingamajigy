@@ -2,7 +2,7 @@ use std::f32::consts::E;
 
 use nalgebra::{Vector1, Vector2};
 use neural_thingamajigy::{
-    loss::squared_error, optimiser::{AdamOptimiser, SGDOptimsier}, train, Activator, Network, RandomSampler,
+    loss::squared_error, optimiser::AdamOptimiser, train, Activator, Network,
 };
 
 fn sigmoid(x: f32) -> f32 {
@@ -32,9 +32,6 @@ fn main() {
 
     let mut counter = 0;
 
-    // Random Batching
-    // let mut rng = rand::rngs::OsRng;
-
     let mut opt = AdamOptimiser::new(0.001, 0.9, 0.999);
     // let mut opt = SGDOptimsier{learning_rate: 0.1};
 
@@ -48,13 +45,13 @@ fn main() {
         // let mse = train(
         //     RandomSampler {
         //         data: &data,
-        //         rng: &mut rng,
+        //         rng: &mut OsRng,
         //     }
         //     .take(10),
         //     &mut network,
         //     &activator,
         //     &squared_error,
-        //     &mut opt,
+        //     &mut adam,
         // );
 
         let mse = train(
