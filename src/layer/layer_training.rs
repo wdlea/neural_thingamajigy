@@ -31,7 +31,6 @@ impl<const INPUTS: usize, const OUTPUTS: usize> Layer<INPUTS, OUTPUTS> {
         LayerData {
             weight_gradient,
             bias_gradient,
-            gradient,
             loss_gradient: gradient.transpose() * loss_gradients,
         }
     }

@@ -10,9 +10,6 @@ pub struct LayerData<const INPUTS: usize, const OUTPUTS: usize> {
     /// The gradient of the bias values with respect to the loss function.
     pub bias_gradient: SVector<f32, OUTPUTS>,
 
-    /// The gradient of the inputs with respect to the outputs.
-    pub gradient: SMatrix<f32, OUTPUTS, INPUTS>,
-
     /// The gradient of the inputs with respect to the loss function.
     pub loss_gradient: SVector<f32, INPUTS>,
 }
@@ -32,7 +29,6 @@ impl<const INPUTS: usize, const OUTPUTS: usize> LayerData<INPUTS, OUTPUTS> {
         Self {
             weight_gradient: SMatrix::from_fn(|_, _| value),
             bias_gradient: SMatrix::from_fn(|_, _| value),
-            gradient: SMatrix::from_fn(|_, _| value),
             loss_gradient: SMatrix::from_fn(|_, _| value),
         }
     }
@@ -43,7 +39,6 @@ impl<const INPUTS: usize, const OUTPUTS: usize> LayerData<INPUTS, OUTPUTS> {
         Self {
             weight_gradient: self.weight_gradient.map(f),
             bias_gradient: self.bias_gradient.map(f),
-            gradient: self.gradient.map(f),
             loss_gradient: self.loss_gradient.map(f),
         }
     }
@@ -54,7 +49,6 @@ impl<const INPUTS: usize, const OUTPUTS: usize> LayerData<INPUTS, OUTPUTS> {
         Self {
             weight_gradient: mat_binary_elementwise(&lhs.weight_gradient, &rhs.weight_gradient, f),
             bias_gradient: mat_binary_elementwise(&lhs.bias_gradient, &rhs.bias_gradient, f),
-            gradient: mat_binary_elementwise(&lhs.gradient, &rhs.gradient, f),
             loss_gradient: mat_binary_elementwise(&lhs.loss_gradient, &rhs.loss_gradient, f),
         }
     }
@@ -65,7 +59,6 @@ impl<const INPUTS: usize, const OUTPUTS: usize> Default for LayerData<INPUTS, OU
         Self {
             weight_gradient: SMatrix::zeros(),
             bias_gradient: SMatrix::zeros(),
-            gradient: SMatrix::zeros(),
             loss_gradient: SMatrix::zeros(),
         }
     }
@@ -78,7 +71,6 @@ impl<const INPUTS: usize, const OUTPUTS: usize> Add for &LayerData<INPUTS, OUTPU
         LayerData::<INPUTS, OUTPUTS> {
             weight_gradient: self.weight_gradient + rhs.weight_gradient,
             bias_gradient: self.bias_gradient + rhs.bias_gradient,
-            gradient: self.gradient + rhs.gradient,
             loss_gradient: self.loss_gradient + rhs.loss_gradient,
         }
     }
@@ -91,7 +83,6 @@ impl<const INPUTS: usize, const OUTPUTS: usize> Neg for &LayerData<INPUTS, OUTPU
         LayerData::<INPUTS, OUTPUTS> {
             weight_gradient: -self.weight_gradient,
             bias_gradient: -self.bias_gradient,
-            gradient: -self.gradient,
             loss_gradient: -self.loss_gradient,
         }
     }
@@ -112,7 +103,6 @@ impl<const INPUTS: usize, const OUTPUTS: usize> Mul<f32> for &LayerData<INPUTS, 
         LayerData::<INPUTS, OUTPUTS> {
             weight_gradient: self.weight_gradient * rhs,
             bias_gradient: self.bias_gradient * rhs,
-            gradient: self.gradient * rhs,
             loss_gradient: self.loss_gradient * rhs,
         }
     }

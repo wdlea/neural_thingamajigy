@@ -24,15 +24,22 @@ pub struct AdamOptimiser<
     const WIDTH: usize,
     const HIDDEN: usize,
 > {
+    /// The momentum variable in the ADAM optimiser
     momentum: NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+    /// The velocity variable in the ADAM optimiser
     velocity: NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
 
-    learning_rate: f32,  // alpha
-    momentum_mixer: f32, // beta[1]
-    velocity_mixer: f32, // beta[2]
+    /// Learning rate(alpha) hyperparameter
+    pub learning_rate: f32,
+    /// Momentum "mixer" (beta1) hyperparameter
+    pub momentum_mixer: f32,
+    /// Velocity "mixer" (beta2) hyperparameter
+    pub velocity_mixer: f32,
 
-    accumulated_momentum: f32, // beta[1] ^ t
-    accumulated_velocity: f32, // beta[2] ^ t
+    /// beta1 ^ t field to optimise sequential generation
+    accumulated_momentum: f32,
+    /// beta2 ^ t field to optimise sequential generation
+    accumulated_velocity: f32,
 }
 
 impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
@@ -100,7 +107,9 @@ pub struct SGDOptimsier<
     pub learning_rate: f32,
 }
 
-impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize> Optimiser<INPUTS, OUTPUTS, WIDTH, HIDDEN> for SGDOptimsier<INPUTS, OUTPUTS, WIDTH, HIDDEN> {
+impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
+    Optimiser<INPUTS, OUTPUTS, WIDTH, HIDDEN> for SGDOptimsier<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+{
     fn transform(
         &mut self,
         gradient: &NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,

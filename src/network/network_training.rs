@@ -103,26 +103,16 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
     }
 
     /// Applies a nudge to the network, multiplied by the learning rate.
-    pub fn apply_nudge(
-        &mut self,
-        nudge: NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
-    ) {
-        self.first.apply_shifts(
-            nudge.first.weight_gradient,
-            nudge.first.bias_gradient,
-        );
+    pub fn apply_nudge(&mut self, nudge: NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>) {
+        self.first
+            .apply_shifts(nudge.first.weight_gradient, nudge.first.bias_gradient);
 
         for (layer, shift) in zip(&mut self.hidden, nudge.hidden) {
-            layer.apply_shifts(
-                shift.weight_gradient,
-                shift.bias_gradient,
-            );
+            layer.apply_shifts(shift.weight_gradient, shift.bias_gradient);
         }
 
-        self.last.apply_shifts(
-            nudge.last.weight_gradient,
-            nudge.last.bias_gradient,
-        );
+        self.last
+            .apply_shifts(nudge.last.weight_gradient, nudge.last.bias_gradient);
     }
 
     /// Generates a random network with random((-1)-(1)) weights and biases.

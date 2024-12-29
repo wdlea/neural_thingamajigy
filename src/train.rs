@@ -27,7 +27,7 @@ pub fn train<
     network: &mut Network<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
     activator: &Activator,
     loss_function: &LossFunction<OUTPUTS>,
-    optimiser: &mut impl Optimiser<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    optimiser: &mut impl Optimiser<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
 ) -> f32 {
     let mut total_loss = 0f32;
 
@@ -46,7 +46,7 @@ pub fn train<
         .collect();
 
     let gradient = NetworkData::mean(&gradients); // mean squared error
-    
+
     let step = optimiser.transform(&gradient);
 
     network.apply_nudge(step);
