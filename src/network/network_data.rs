@@ -4,34 +4,44 @@ use std::{
     ops::{Add, Mul, Neg, Sub},
 };
 
+use nalgebra::RealField;
+
 use crate::layer::LayerData;
 
 /// Data about a network generated via backpropogation used in training.
 #[derive(Clone)]
 pub struct NetworkData<
+    T: RealField + Copy,
     const INPUTS: usize,
     const OUTPUTS: usize,
     const WIDTH: usize,
     const HIDDEN: usize,
 > {
     /// Data about the first layer
-    pub first: LayerData<INPUTS, WIDTH>,
+    pub first: LayerData<T, INPUTS, WIDTH>,
     /// Data about all the hidden layers
-    pub hidden: [LayerData<WIDTH, WIDTH>; HIDDEN],
+    pub hidden: [LayerData<T, WIDTH, WIDTH>; HIDDEN],
     /// Data about the last layer
-    pub last: LayerData<WIDTH, OUTPUTS>,
+    pub last: LayerData<T, WIDTH, OUTPUTS>,
 }
 
-impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
-    NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+impl<
+        T: RealField + Copy + From<u16>,
+        const INPUTS: usize,
+        const OUTPUTS: usize,
+        const WIDTH: usize,
+        const HIDDEN: usize,
+    > NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
     /// Calculates the mean of a slice of network data
+    /// Due to technical limitations, this collection cannot be longer than u16::MAX (65535 elements)
     pub fn mean(collection: &[Self]) -> Self {
-        &collection.iter().sum::<Self>() * (1f32 / collection.len() as f32)
+        assert!(collection.len() <= u16::MAX.into());
+        &collection.iter().sum::<Self>() * (T::one() / (collection.len() as u16).into())
     }
 
     /// Creates a NetworkData with all underlying values set to `value`
-    pub fn all(value: f32) -> Self {
+    pub fn all(value: T) -> Self {
         Self {
             first: LayerData::all(value),
             hidden: from_fn(|_| LayerData::all(value)),
@@ -41,7 +51,7 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
 
     /// Transforms all underlying values using `f`
     #[must_use]
-    pub fn map(&self, f: &impl Fn(f32) -> f32) -> Self {
+    pub fn map(&self, f: &impl Fn(T) -> T) -> Self {
         Self {
             first: self.first.map(f),
             hidden: from_fn(|i| self.hidden[i].map(f)),
@@ -50,7 +60,7 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
     }
 
     /// Performs f on corresponding entries in lhs and rhs to generate a new matrix with the results
-    pub fn binary_elementwise(lhs: &Self, rhs: &Self, f: &impl Fn(f32, f32) -> f32) -> Self {
+    pub fn binary_elementwise(lhs: &Self, rhs: &Self, f: &impl Fn(T, T) -> T) -> Self {
         Self {
             first: LayerData::binary_elementwise(&lhs.first, &rhs.first, f),
             hidden: from_fn(|i| LayerData::binary_elementwise(&lhs.hidden[i], &rhs.hidden[i], f)),
@@ -59,12 +69,18 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
     }
 }
 
-impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
-    Sum<&'a NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>>
-    for NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+impl<
+        'a,
+        T: RealField + Copy,
+        const INPUTS: usize,
+        const OUTPUTS: usize,
+        const WIDTH: usize,
+        const HIDDEN: usize,
+    > Sum<&'a NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>>
+    for NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
     fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
-        let mut sum = NetworkData::<INPUTS, OUTPUTS, WIDTH, HIDDEN>::default();
+        let mut sum = NetworkData::<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>::default();
 
         for i in iter {
             sum = &sum + i;
@@ -74,8 +90,13 @@ impl<'a, const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HI
     }
 }
 
-impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize> Default
-    for NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+impl<
+        T: RealField + Copy,
+        const INPUTS: usize,
+        const OUTPUTS: usize,
+        const WIDTH: usize,
+        const HIDDEN: usize,
+    > Default for NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
     fn default() -> Self {
         Self {
@@ -86,10 +107,15 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
     }
 }
 
-impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize> Add
-    for &NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+impl<
+        T: RealField + Copy,
+        const INPUTS: usize,
+        const OUTPUTS: usize,
+        const WIDTH: usize,
+        const HIDDEN: usize,
+    > Add for &NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
-    type Output = NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+    type Output = NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
 
     fn add(self, rhs: Self) -> Self::Output {
         Self::Output {
@@ -100,10 +126,15 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
     }
 }
 
-impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize> Neg
-    for &NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+impl<
+        T: RealField + Copy,
+        const INPUTS: usize,
+        const OUTPUTS: usize,
+        const WIDTH: usize,
+        const HIDDEN: usize,
+    > Neg for &NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
-    type Output = NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+    type Output = NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
 
     fn neg(self) -> Self::Output {
         Self::Output {
@@ -114,22 +145,32 @@ impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN
     }
 }
 
-impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize> Sub
-    for &NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+impl<
+        T: RealField + Copy,
+        const INPUTS: usize,
+        const OUTPUTS: usize,
+        const WIDTH: usize,
+        const HIDDEN: usize,
+    > Sub for &NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
-    type Output = NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+    type Output = NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
 
     fn sub(self, rhs: Self) -> Self::Output {
         self + &-rhs
     }
 }
 
-impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize> Mul<f32>
-    for &NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+impl<
+        T: RealField + Copy,
+        const INPUTS: usize,
+        const OUTPUTS: usize,
+        const WIDTH: usize,
+        const HIDDEN: usize,
+    > Mul<T> for &NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
-    type Output = NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+    type Output = NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
 
-    fn mul(self, rhs: f32) -> Self::Output {
+    fn mul(self, rhs: T) -> Self::Output {
         Self::Output {
             first: &self.first * rhs,
             hidden: from_fn(|i| &self.hidden[i] * rhs),

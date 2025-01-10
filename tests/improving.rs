@@ -8,7 +8,7 @@ use neural_thingamajigy::{
 fn improvement_test() {
     let activator = activators::Sigmoid;
 
-    let mut network = Network::<2, 1, 5, 2>::random();
+    let mut network = Network::<f32, 2, 1, 5, 2>::random();
 
     let data = [
         (Vector2::new(0f32, 0f32), Vector1::new(0f32)),
