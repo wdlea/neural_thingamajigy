@@ -1,27 +1,26 @@
-use std::f32::consts::E;
-
+use nalgebra::RealField;
 #[cfg(feature = "train")]
 use nalgebra::{SMatrix, SVector};
 
 /// Contains an activaton function and it's gradient
-pub trait Activator {
+pub trait Activator<T: RealField + Copy> {
     /// The activation function, which is applied after the weights and before the bias.
-    fn activation(&self, x: f32) -> f32;
+    fn activation(&self, x: T) -> T;
 
     /// The gradient of the activation function, used in backpropogation.
-    fn activation_gradient(&self, x: f32) -> f32;
+    fn activation_gradient(&self, x: T) -> T;
 
     /// The equivalent matrix for the activation function for some set of weighted values.
     #[cfg(feature = "train")]
     fn activation_gradient_matrix<const OUTPUTS: usize>(
         &self,
-        weighted: SVector<f32, OUTPUTS>,
-    ) -> SMatrix<f32, OUTPUTS, OUTPUTS> {
-        SMatrix::<f32, OUTPUTS, OUTPUTS>::from_fn(|i, j| {
+        weighted: SVector<T, OUTPUTS>,
+    ) -> SMatrix<T, OUTPUTS, OUTPUTS> {
+        SMatrix::<T, OUTPUTS, OUTPUTS>::from_fn(|i, j| {
             if i == j {
                 self.activation_gradient(weighted[i])
             } else {
-                0f32
+                T::zero()
             }
         })
     }
@@ -30,31 +29,31 @@ pub trait Activator {
 /// The Sigmoid activation function
 pub struct Sigmoid;
 
-impl Activator for Sigmoid {
-    fn activation(&self, x: f32) -> f32 {
-        1f32 / (1f32 + E.powf(-x))
+impl<T: RealField + Copy> Activator<T> for Sigmoid {
+    fn activation(&self, x: T) -> T {
+        T::one() / (T::one() + T::exp(x))
     }
 
-    fn activation_gradient(&self, x: f32) -> f32 {
+    fn activation_gradient(&self, x: T) -> T {
         let sigma = self.activation(x);
-        sigma * (1f32 - sigma)
+        sigma * (T::one() - sigma)
     }
 }
 
 /// The Rectified Linear Unit activation function
 pub struct Relu;
 
-impl Activator for Relu {
-    fn activation(&self, x: f32) -> f32 {
-        x.max(0f32)
+impl<T: RealField + Copy> Activator<T> for Relu {
+    fn activation(&self, x: T) -> T {
+        T::max(x, T::zero())
     }
 
-    fn activation_gradient(&self, x: f32) -> f32 {
-        if x >= 0f32 {
+    fn activation_gradient(&self, x: T) -> T {
+        if x >= T::zero() {
             // in the rare case that x == 0, I think a gradient of 1 makes more sense
-            1f32
+            T::one()
         } else {
-            0f32
+            T::zero()
         }
     }
 }

@@ -8,7 +8,7 @@ mod network_data;
 #[cfg(feature = "train")]
 pub use network_data::NetworkData;
 
-use nalgebra::SVector;
+use nalgebra::{RealField, SVector};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -22,29 +22,35 @@ use crate::{activators::Activator, layer::Layer};
 /// produces `OUTPUTS` outputs. There are `HIDDEN`(can be 0) hidden layers.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Network<
+    T: RealField + Copy,
     const INPUTS: usize,
     const OUTPUTS: usize,
     const WIDTH: usize,
     const HIDDEN: usize,
 > {
     /// The first layer
-    first: Layer<INPUTS, WIDTH>,
+    first: Layer<T, INPUTS, WIDTH>,
     /// All hidden layers
     #[cfg_attr(feature = "serde", serde(with = "serde_arrays"))]
-    hidden: [Layer<WIDTH, WIDTH>; HIDDEN],
+    hidden: [Layer<T, WIDTH, WIDTH>; HIDDEN],
     /// The last layer
-    last: Layer<WIDTH, OUTPUTS>,
+    last: Layer<T, WIDTH, OUTPUTS>,
 }
 
-impl<const INPUTS: usize, const OUTPUTS: usize, const WIDTH: usize, const HIDDEN: usize>
-    Network<INPUTS, OUTPUTS, WIDTH, HIDDEN>
+impl<
+        T: RealField + Copy,
+        const INPUTS: usize,
+        const OUTPUTS: usize,
+        const WIDTH: usize,
+        const HIDDEN: usize,
+    > Network<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
     /// Evaluates a network given a set of inputs to produce it's outputs.
     pub fn evaluate(
         &self,
-        inputs: SVector<f32, INPUTS>,
-        activator: &impl Activator,
-    ) -> SVector<f32, OUTPUTS> {
+        inputs: SVector<T, INPUTS>,
+        activator: &impl Activator<T>,
+    ) -> SVector<T, OUTPUTS> {
         let hidden_inputs = self.first.through(inputs, activator);
 
         let mut current_hidden = hidden_inputs;

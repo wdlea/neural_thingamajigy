@@ -4,8 +4,10 @@ pub mod loss;
 /// Defines Optimiser trait and ADAM
 pub mod optimiser;
 
+use std::iter::Sum;
+
 use loss::LossFunction;
-use nalgebra::SVector;
+use nalgebra::{RealField, SVector};
 use optimiser::Optimiser;
 
 use crate::{activators::Activator, Network};
@@ -17,20 +19,21 @@ pub use crate::{layer::LayerData, network::NetworkData};
 /// loss_function.
 pub fn train<
     'a,
+    T: RealField + Copy + From<u8>,
     const INPUTS: usize,
     const OUTPUTS: usize,
     const WIDTH: usize,
     const HIDDEN: usize,
 >(
-    data: impl Iterator<Item = &'a (SVector<f32, INPUTS>, SVector<f32, OUTPUTS>)>,
-    network: &mut Network<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
-    activator: &impl Activator,
-    loss_function: &LossFunction<OUTPUTS>,
-    optimiser: &mut impl Optimiser<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
-) -> f32 {
-    let mut total_loss = 0f32;
+    data: impl Iterator<Item = &'a (SVector<T, INPUTS>, SVector<T, OUTPUTS>)>,
+    network: &mut Network<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+    activator: &impl Activator<T>,
+    loss_function: &LossFunction<T, OUTPUTS>,
+    optimiser: &mut impl Optimiser<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+) -> T {
+    let mut total_loss = T::zero();
 
-    let gradients: Vec<NetworkData<INPUTS, OUTPUTS, WIDTH, HIDDEN>> = data
+    let gradients: Vec<NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>> = data
         .map(
             #[expect(non_snake_case)]
             |(x, Y)| {
@@ -50,29 +53,30 @@ pub fn train<
 
     network.apply_nudge(step);
 
-    total_loss / gradients.len() as f32
+    total_loss / (gradients.len() as u8).into()
 }
 
 /// Calculates the average loss for a network from a set of data
 pub fn get_loss<
     'a,
+    T: RealField + Copy + Sum,
     const INPUTS: usize,
     const OUTPUTS: usize,
     const WIDTH: usize,
     const HIDDEN: usize,
 >(
-    data: impl Iterator<Item = &'a (SVector<f32, INPUTS>, SVector<f32, OUTPUTS>)>,
-    network: &Network<INPUTS, OUTPUTS, WIDTH, HIDDEN>,
-    activator: &impl Activator,
-    loss_function: &LossFunction<OUTPUTS>,
-) -> f32 {
-    let mut counter = 0usize;
-    data.inspect(|_| counter += 1)
+    data: impl Iterator<Item = &'a (SVector<T, INPUTS>, SVector<T, OUTPUTS>)>,
+    network: &Network<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+    activator: &impl Activator<T>,
+    loss_function: &LossFunction<T, OUTPUTS>,
+) -> T {
+    let mut counter = T::zero();
+    data.inspect(|_| counter += T::one())
         .map(|(input, expected)| {
             let predicted = network.evaluate(*input, activator);
 
             loss_function(expected, &predicted).0
         })
-        .sum::<f32>()
-        / counter as f32
+        .sum::<T>()
+        / counter
 }
