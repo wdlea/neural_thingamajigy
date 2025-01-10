@@ -7,6 +7,7 @@ use std::{
 use crate::layer::LayerData;
 
 /// Data about a network generated via backpropogation used in training.
+#[derive(Clone)]
 pub struct NetworkData<
     const INPUTS: usize,
     const OUTPUTS: usize,

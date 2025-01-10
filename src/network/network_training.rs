@@ -10,6 +10,7 @@ use crate::{
 use super::Network;
 
 /// Inputs to each layer of the network, used in training.
+#[derive(Clone)]
 pub struct TrainingInputs<
     const INPUTS: usize,
     const OUTPUTS: usize,

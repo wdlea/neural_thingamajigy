@@ -3,6 +3,7 @@ use std::ops::{Add, Mul, Neg, Sub};
 use nalgebra::{SMatrix, SVector, Scalar};
 
 /// Data about a layer generated via backpropogation used in training.
+#[derive(Clone)]
 pub struct LayerData<const INPUTS: usize, const OUTPUTS: usize> {
     /// The gradient of the weight values with respect to the loss function.
     pub weight_gradient: SMatrix<f32, OUTPUTS, INPUTS>,
