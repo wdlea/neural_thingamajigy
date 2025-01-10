@@ -82,7 +82,7 @@ impl<
 }
 
 impl<
-        T: RealField + Copy + From<u8>,
+        T: RealField + Copy,
         const INPUTS: usize,
         const OUTPUTS: usize,
         const WIDTH: usize,

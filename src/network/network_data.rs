@@ -26,7 +26,7 @@ pub struct NetworkData<
 }
 
 impl<
-        T: RealField + Copy + From<u8>,
+        T: RealField + Copy,
         const INPUTS: usize,
         const OUTPUTS: usize,
         const WIDTH: usize,
@@ -34,10 +34,10 @@ impl<
     > NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
     /// Calculates the mean of a slice of network data
-    /// Due to technical limitations, this collection cannot be longer than u8::MAX (255 elements)
+    /// Due to technical limitations, this collection length must be representable with T
     pub fn mean(collection: &[Self]) -> Self {
-        assert!(collection.len() <= u8::MAX.into());
-        &collection.iter().sum::<Self>() * (T::one() / (collection.len() as u8).into())
+        let length = T::one() / T::from_usize(collection.len()).unwrap();
+        &collection.iter().sum::<Self>() * (T::one() / length)
     }
 
     /// Creates a NetworkData with all underlying values set to `value`
