@@ -22,10 +22,6 @@ impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Layer<T, IN
         inputs: SVector<T, INPUTS>,
         activator: &impl Activator<T>,
     ) -> (LayerData<T, INPUTS, OUTPUTS>, SVector<T, INPUTS>) {
-        if loss_gradients.norm().is_zero() {
-            eprintln!("WARNING: Loss gradient was zero, this could be a bug.");
-        }
-
         // each bias is shifted by it's respective loss
         let bias_gradient = loss_gradients;
 
