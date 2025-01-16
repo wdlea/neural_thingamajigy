@@ -72,7 +72,7 @@ impl<
     /// Computes NetworkData from TrainingInputs and the loss gradient of each output.
     pub fn get_data(
         &self,
-        data: TrainingInputs<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+        data: &TrainingInputs<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
         output_loss_gradients: SVector<T, OUTPUTS>,
         activator: &impl Activator<T>,
     ) -> (

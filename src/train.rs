@@ -42,7 +42,7 @@ pub fn train<
                 let (instance_loss, loss_gradient) = loss_function(Y, &predicted);
                 total_loss += instance_loss;
 
-                network.get_data(training_data, loss_gradient, activator).0 // discard network input loss as this isn't deep learning
+                network.get_data(&training_data, loss_gradient, activator).0 // discard network input loss as this isn't deep learning
             },
         )
         .collect();
