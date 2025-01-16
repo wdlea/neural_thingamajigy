@@ -22,7 +22,7 @@ impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Layer<T, IN
         inputs: SVector<T, INPUTS>,
         activator: &impl Activator<T>,
     ) -> (LayerData<T, INPUTS, OUTPUTS>, SVector<T, INPUTS>) {
-        if loss_gradients.norm().is_zero(){
+        if loss_gradients.norm().is_zero() {
             eprintln!("WARNING: Loss gradient was zero, this could be a bug.");
         }
 

@@ -7,6 +7,8 @@ mod network_training;
 mod network_data;
 #[cfg(feature = "train")]
 pub use network_data::NetworkData;
+#[cfg(feature = "train")]
+pub use network_training::TrainingInputs;
 
 use nalgebra::{RealField, SVector};
 
