@@ -56,7 +56,11 @@ impl<T: RealField> Default for Relu<T> {
 
 impl<T: RealField + Copy> Activator<T> for Relu<T> {
     fn activation(&self, x: T) -> T {
-        T::max(x, self.leaky_gradient * x)
+        if x >= T::zero(){
+            x
+        }else{
+            self.leaky_gradient * x
+        }
     }
 
     fn activation_gradient(&self, x: T) -> T {
@@ -65,6 +69,27 @@ impl<T: RealField + Copy> Activator<T> for Relu<T> {
             T::one()
         } else {
             self.leaky_gradient
+        }
+    }
+}
+
+/// The Exponential Linear Unit activation function
+pub struct Elu;
+
+impl<T: RealField + Copy> Activator<T> for Elu {
+    fn activation(&self, x: T) -> T {
+        if x >= T::zero() {
+            x
+        } else {
+            x.exp() - T::one()
+        }
+    }
+
+    fn activation_gradient(&self, x: T) -> T {
+        if x >= T::zero() {
+            T::one()
+        } else {
+            x.exp()
         }
     }
 }
