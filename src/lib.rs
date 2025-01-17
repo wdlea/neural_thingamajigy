@@ -11,6 +11,6 @@ mod network;
 #[cfg(feature = "train")]
 mod train;
 
-pub use network::Network;
+pub use network::SimpleNetwork;
 #[cfg(feature = "train")]
-pub use {network::TrainingInputs, train::*};
+pub use train::*;

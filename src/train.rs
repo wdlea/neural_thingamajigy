@@ -10,8 +10,12 @@ use loss::LossFunction;
 use nalgebra::{RealField, SVector};
 use optimiser::Optimiser;
 
-use crate::{activators::Activator, Network};
-pub use crate::{layer::LayerData, network::NetworkData};
+pub use crate::layer::LayerData;
+use crate::{
+    activators::Activator,
+    network::{Network, TrainableNetwork},
+    SimpleNetwork,
+};
 
 /// Perform 1 training epoch on a network with training data.
 /// `data` is a slice of `(INPUT, OUTPUT)` tuples. This returns
@@ -22,18 +26,17 @@ pub fn train<
     T: RealField + Copy + From<u8>,
     const INPUTS: usize,
     const OUTPUTS: usize,
-    const WIDTH: usize,
-    const HIDDEN: usize,
+    N: TrainableNetwork<T, INPUTS, OUTPUTS>,
 >(
     data: impl Iterator<Item = &'a (SVector<T, INPUTS>, SVector<T, OUTPUTS>)>,
-    network: &mut Network<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+    network: &mut N,
     activator: &impl Activator<T>,
     loss_function: &LossFunction<T, OUTPUTS>,
     optimiser: &mut impl Optimiser<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
 ) -> T {
     let mut total_loss = T::zero();
 
-    let gradients: Vec<NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>> = data
+    let gradients: Vec<N::Gradient> = data
         .map(
             #[expect(non_snake_case)]
             |(x, Y)| {
@@ -42,7 +45,9 @@ pub fn train<
                 let (instance_loss, loss_gradient) = loss_function(Y, &predicted);
                 total_loss += instance_loss;
 
-                network.get_data(&training_data, loss_gradient, activator).0 // discard network input loss as this isn't deep learning
+                network
+                    .get_gradient(&training_data, loss_gradient, activator)
+                    .0 // discard network input loss as this isn't deep learning
             },
         )
         .collect();
@@ -66,7 +71,7 @@ pub fn get_loss<
     const HIDDEN: usize,
 >(
     data: impl Iterator<Item = &'a (SVector<T, INPUTS>, SVector<T, OUTPUTS>)>,
-    network: &Network<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+    network: &SimpleNetwork<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
     activator: &impl Activator<T>,
     loss_function: &LossFunction<T, OUTPUTS>,
 ) -> T {

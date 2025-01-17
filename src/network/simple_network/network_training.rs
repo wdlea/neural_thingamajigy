@@ -1,14 +1,14 @@
 use nalgebra::{RealField, SVector};
-use rand::{distributions::Standard, prelude::Distribution};
+use rand::{distributions::Standard, prelude::Distribution, Rng};
 use std::{array::from_fn, iter::zip, mem::MaybeUninit};
 
 use crate::{
     activators::Activator,
     layer::{Layer, LayerData},
-    network::network_data::NetworkData,
+    network::{RandomisableNetwork, TrainableNetwork},
 };
 
-use super::Network;
+use super::{network_data::NetworkData, SimpleNetwork};
 
 /// Inputs to each layer of the network, used in training.
 #[derive(Clone)]
@@ -33,11 +33,15 @@ impl<
         const OUTPUTS: usize,
         const WIDTH: usize,
         const HIDDEN: usize,
-    > Network<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    > TrainableNetwork<T, INPUTS, OUTPUTS> for SimpleNetwork<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
+    type LayerInputs = TrainingInputs<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+
+    type Gradient = NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+
     /// The same thing as evaluate, but returns the inputs to each layer
     /// as well. This will incur a performance penalty.
-    pub fn evaluate_training(
+    fn evaluate_training(
         &self,
         input: SVector<T, INPUTS>,
         activator: &impl Activator<T>,
@@ -70,7 +74,7 @@ impl<
     }
 
     /// Computes NetworkData from TrainingInputs and the loss gradient of each output.
-    pub fn get_data(
+    fn get_gradient(
         &self,
         data: &TrainingInputs<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
         output_loss_gradients: SVector<T, OUTPUTS>,
@@ -118,8 +122,8 @@ impl<
         )
     }
 
-    /// Applies a nudge to the network, multiplied by the learning rate.
-    pub fn apply_nudge(&mut self, nudge: NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>) {
+    /// Applies a nudge to the network
+    fn apply_nudge(&mut self, nudge: NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>) {
         self.first
             .apply_shifts(nudge.first.weight_gradient, nudge.first.bias_gradient);
 
@@ -130,12 +134,20 @@ impl<
         self.last
             .apply_shifts(nudge.last.weight_gradient, nudge.last.bias_gradient);
     }
+}
 
+impl<
+        T: RealField + Copy,
+        const INPUTS: usize,
+        const OUTPUTS: usize,
+        const WIDTH: usize,
+        const HIDDEN: usize,
+    > RandomisableNetwork<T> for SimpleNetwork<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
+where
+    Standard: Distribution<T>,
+{
     /// Generates a random network with random((-1)-(1)) weights and biases.
-    pub fn random() -> Self
-    where
-        Standard: Distribution<T>,
-    {
+    fn random(_: &mut impl Rng) -> Self {
         Self {
             first: Layer::random(),
             hidden: from_fn(|_| Layer::random()),

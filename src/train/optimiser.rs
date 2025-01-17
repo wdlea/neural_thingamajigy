@@ -2,8 +2,6 @@ use core::f32;
 
 use nalgebra::RealField;
 
-use super::NetworkData;
-
 /// Represents an optimiser
 pub trait Optimiser<
     T: RealField + Copy,

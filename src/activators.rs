@@ -56,9 +56,9 @@ impl<T: RealField> Default for Relu<T> {
 
 impl<T: RealField + Copy> Activator<T> for Relu<T> {
     fn activation(&self, x: T) -> T {
-        if x >= T::zero(){
+        if x >= T::zero() {
             x
-        }else{
+        } else {
             self.leaky_gradient * x
         }
     }
