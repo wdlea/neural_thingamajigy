@@ -41,11 +41,22 @@ impl<T: RealField + Copy> Activator<T> for Sigmoid {
 }
 
 /// The Rectified Linear Unit activation function
-pub struct Relu;
+pub struct Relu<T> {
+    /// What gradient to have below zero
+    pub leaky_gradient: T,
+}
 
-impl<T: RealField + Copy> Activator<T> for Relu {
+impl<T: RealField> Default for Relu<T> {
+    fn default() -> Self {
+        Self {
+            leaky_gradient: T::zero(),
+        }
+    }
+}
+
+impl<T: RealField + Copy> Activator<T> for Relu<T> {
     fn activation(&self, x: T) -> T {
-        T::max(x, T::zero())
+        T::max(x, self.leaky_gradient * x)
     }
 
     fn activation_gradient(&self, x: T) -> T {
@@ -53,7 +64,7 @@ impl<T: RealField + Copy> Activator<T> for Relu {
             // in the rare case that x == 0, I think a gradient of 1 makes more sense
             T::one()
         } else {
-            T::zero()
+            self.leaky_gradient
         }
     }
 }
