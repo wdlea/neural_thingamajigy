@@ -74,11 +74,9 @@ impl<T: RealField + Copy, G: ValueSet<T>> Optimiser<T, G> for AdamOptimiser<T, G
         self.accumulated_momentum *= self.momentum_mixer;
         self.accumulated_velocity *= self.velocity_mixer;
 
-        
-        corrected_momentum.binary_operation(&corrected_velocity, 
-        |&mom, &vel|{
-            -self.learning_rate * mom / (vel.sqrt() + T::min_value().expect("T has no minimum value"))
-        }
-    )
+        corrected_momentum.binary_operation(&corrected_velocity, |&mom, &vel| {
+            -self.learning_rate * mom
+                / (vel.sqrt() + T::min_value().expect("T has no minimum value"))
+        })
     }
 }
