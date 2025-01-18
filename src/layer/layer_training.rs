@@ -1,9 +1,7 @@
+use super::{Layer, LayerGradient};
+use crate::activators::Activator;
 use nalgebra::{RealField, SMatrix, SVector};
 use rand::{distributions::Standard, prelude::Distribution};
-
-use crate::activators::Activator;
-
-use super::{Layer, LayerGradient};
 
 impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Layer<T, INPUTS, OUTPUTS> {
     /// The gradient of the layer for a given set of inputs.

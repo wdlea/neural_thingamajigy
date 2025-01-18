@@ -1,6 +1,3 @@
-/// Defines a simple network with limited customisation optionss
-mod simple_network;
-
 use crate::activators::Activator;
 use nalgebra::{RealField, SVector};
 #[cfg(feature = "train")]
@@ -8,6 +5,9 @@ use {
     crate::valueset::ValueSet,
     rand::{distributions::Standard, prelude::Distribution, Rng},
 };
+
+/// Defines a simple network with limited customisation optionss
+mod simple_network;
 
 pub use simple_network::SimpleNetwork;
 

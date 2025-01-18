@@ -1,8 +1,8 @@
-use std::ops::{Add, Mul, Neg, Sub};
-
-use nalgebra::{RealField, SMatrix, SVector};
+extern crate std;
 
 use crate::valueset::ValueSet;
+use nalgebra::{RealField, SMatrix, SVector};
+use std::ops::{Add, Mul, Neg, Sub};
 
 /// Data about a layer generated via backpropogation used in training.
 #[derive(Clone)]

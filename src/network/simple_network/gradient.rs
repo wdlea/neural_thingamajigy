@@ -1,12 +1,12 @@
+extern crate std;
+
+use crate::{layer::LayerGradient, valueset::ValueSet};
+use nalgebra::RealField;
 use std::{
     array::from_fn,
     iter::Sum,
     ops::{Add, Mul, Neg, Sub},
 };
-
-use nalgebra::RealField;
-
-use crate::{layer::LayerGradient, valueset::ValueSet};
 
 /// Data about a network generated via backpropogation used in training.
 #[derive(Clone)]

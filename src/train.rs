@@ -1,22 +1,22 @@
-/// Defines LossFunction and some common instances
-pub mod loss;
+extern crate std;
 
-/// Defines Optimiser trait and ADAM
-pub mod optimiser;
-
-use std::iter::Sum;
-
-use loss::LossFunction;
-use nalgebra::{RealField, SVector};
-use optimiser::Optimiser;
-
-pub use crate::layer::LayerGradient;
 use crate::{
     activators::Activator,
     network::{Network, TrainableNetwork},
     valueset::mean,
     SimpleNetwork,
 };
+use loss::LossFunction;
+use nalgebra::{RealField, SVector};
+use optimiser::Optimiser;
+use std::{iter::Sum, vec::Vec};
+
+/// Defines LossFunction and some common instances
+pub mod loss;
+/// Defines Optimiser trait and ADAM
+pub mod optimiser;
+
+pub use crate::layer::LayerGradient;
 
 /// Perform 1 training epoch on a network with training data.
 /// `data` is a slice of `(INPUT, OUTPUT)` tuples. This returns

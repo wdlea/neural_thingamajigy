@@ -1,5 +1,6 @@
 //! This crate defines a generic feedforward neural network featuring custom activation functions and training using the mean-squared-error.
 #![deny(missing_docs, clippy::missing_docs_in_private_items)]
+#![no_std]
 
 /// Defines the Activator type
 pub mod activators;

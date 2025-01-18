@@ -1,6 +1,7 @@
-use std::iter::zip;
+extern crate std;
 
 use nalgebra::{ComplexField, SMatrix};
+use std::iter::zip;
 
 /// Represents anything which is a nested collection of a value
 pub trait ValueSet<T: Clone>: Sized {

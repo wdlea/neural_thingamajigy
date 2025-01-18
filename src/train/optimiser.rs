@@ -1,8 +1,6 @@
-use core::f32;
-
-use nalgebra::RealField;
-
 use crate::valueset::ValueSet;
+use core::f32;
+use nalgebra::RealField;
 
 /// Represents an optimiser
 pub trait Optimiser<T: RealField + Copy, G> {

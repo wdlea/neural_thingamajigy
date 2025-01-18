@@ -1,14 +1,14 @@
-use nalgebra::{RealField, SVector};
-use rand::{distributions::Standard, prelude::Distribution, Rng};
-use std::{array::from_fn, iter::zip, mem::MaybeUninit};
+extern crate std;
 
+use super::{gradient::Gradient, SimpleNetwork};
 use crate::{
     activators::Activator,
     layer::{Layer, LayerGradient},
     network::{RandomisableNetwork, TrainableNetwork},
 };
-
-use super::{gradient::Gradient, SimpleNetwork};
+use nalgebra::{RealField, SVector};
+use rand::{distributions::Standard, prelude::Distribution, Rng};
+use std::{array::from_fn, iter::zip, mem::MaybeUninit};
 
 /// Inputs to each layer of the network, used in training.
 #[derive(Clone)]

@@ -1,10 +1,8 @@
+use super::Network;
 use crate::{activators::Activator, layer::Layer};
 use nalgebra::{RealField, SVector};
-
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-
-use super::Network;
 
 /// Defines Gradient, the object storing the gradient of all the weights and biases with respect to the loss function
 #[cfg(feature = "train")]
