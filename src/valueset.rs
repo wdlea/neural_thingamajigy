@@ -1,66 +1,55 @@
-use std::mem::MaybeUninit;
-
 use nalgebra::{ComplexField, SMatrix};
 
 pub trait ValueSet<T: Clone>: Sized {
     /// Executes f for every corresponding set of entries in gradients, returning the results
-    fn nary_operation<const N: usize>(sets: [&Self; N], f: impl Fn([&T; N]) -> T) -> Self;
+    fn nary_operation(sets: &[&Self], f: impl Fn(&[&T]) -> T) -> Self;
 
     /// Executes f for every entry, returning the transformed value
     fn unary_operation(&self, f: impl Fn(&T) -> T) -> Self {
-        Self::nary_operation([&self], |[a]| f(a))
+        Self::nary_operation(&[&self], |a| f(a[0]))
     }
 
     /// Executes f for every corresponding set of entries, returning the results
     fn binary_operation(&self, other: &Self, f: impl Fn(&T, &T) -> T) -> Self {
-        Self::nary_operation([&self, other], |[a, b]| f(a, b))
+        Self::nary_operation(&[&self, other], |a| f(a[0], a[1]))
     }
 
     /// Executes f for every corresponding set of entries in gradients
-    fn nary_inspection<const N: usize>(sets: [&Self; N], f: &mut impl FnMut([&T; N]));
+    fn nary_inspection(sets: &[&Self], f: &mut impl FnMut(&[&T]));
 
     /// Executes f for every entry
     fn unary_inspection(&self, f: &mut impl FnMut(&T)) {
-        Self::nary_inspection([&self], &mut |[a]| f(a));
+        Self::nary_inspection(&[&self], &mut |a| f(a[0]));
     }
 
     /// Executes f for every corresponding set of entries
     fn binary_inspection(&self, other: &Self, f: &mut impl FnMut(&T, &T)) {
-        Self::nary_inspection([&self, other], &mut |[a, b]| f(a, b));
+        Self::nary_inspection(&[&self, other], &mut |a| f(a[0], a[1]));
     }
 
+    /// Creates a Self filled with v
     fn all(v: T) -> Self;
 }
 
 impl<T: ComplexField, const WIDTH: usize, const HEIGHT: usize> ValueSet<T>
     for SMatrix<T, WIDTH, HEIGHT>
 {
-    fn nary_operation<const N: usize>(sets: [&Self; N], f: impl Fn([&T; N]) -> T) -> Self {
+    fn nary_operation(sets: &[&Self], f: impl Fn(&[&T]) -> T) -> Self {
         let mut out = SMatrix::<T, WIDTH, HEIGHT>::zeros();
 
         for i in 0..(WIDTH * HEIGHT) {
-            let mut arr = [MaybeUninit::<&T>::uninit(); N];
-            for n in 0..N {
-                arr[n].write(&sets[n][i]);
-            }
+            let vec: Vec<_> = sets.iter().map(|&s| &s[i]).collect();
 
-            out[i] = f(unsafe {
-                arr.map(|i| i.assume_init()) // I believe this is a no-op, so this will be optimised out
-            });
+            out[i] = f(vec.as_slice());
         }
         out
     }
 
-    fn nary_inspection<const N: usize>(sets: [&Self; N], f: &mut impl FnMut([&T; N])) {
+    fn nary_inspection(sets: &[&Self], f: &mut impl FnMut(&[&T])) {
         for i in 0..(WIDTH * HEIGHT) {
-            let mut arr = [MaybeUninit::<&T>::uninit(); N];
-            for n in 0..N {
-                arr[n].write(&sets[n][i]);
-            }
+            let vec: Vec<_> = sets.iter().map(|&s| &s[i]).collect();
 
-            f(unsafe {
-                arr.map(|i| i.assume_init()) // I believe this is a no-op, so this will be optimised out
-            });
+            f(vec.as_slice());
         }
     }
 
