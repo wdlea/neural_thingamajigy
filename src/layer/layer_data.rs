@@ -6,7 +6,7 @@ use crate::valueset::ValueSet;
 
 /// Data about a layer generated via backpropogation used in training.
 #[derive(Clone)]
-pub struct LayerData<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> {
+pub struct LayerGradient<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> {
     /// The gradient of the weight values with respect to the loss function.
     pub weight_gradient: SMatrix<T, OUTPUTS, INPUTS>,
 
@@ -15,7 +15,7 @@ pub struct LayerData<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: us
 }
 
 impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> ValueSet<T>
-    for LayerData<T, INPUTS, OUTPUTS>
+    for LayerGradient<T, INPUTS, OUTPUTS>
 {
     fn unary_operation(&self, f: impl Fn(&T) -> T) -> Self {
         Self {
@@ -56,7 +56,7 @@ impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> ValueSet<T>
 }
 
 impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Default
-    for LayerData<T, INPUTS, OUTPUTS>
+    for LayerGradient<T, INPUTS, OUTPUTS>
 {
     fn default() -> Self {
         Self {
@@ -67,12 +67,12 @@ impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Default
 }
 
 impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Add
-    for &LayerData<T, INPUTS, OUTPUTS>
+    for &LayerGradient<T, INPUTS, OUTPUTS>
 {
-    type Output = LayerData<T, INPUTS, OUTPUTS>;
+    type Output = LayerGradient<T, INPUTS, OUTPUTS>;
 
     fn add(self, rhs: Self) -> Self::Output {
-        LayerData::<T, INPUTS, OUTPUTS> {
+        LayerGradient::<T, INPUTS, OUTPUTS> {
             weight_gradient: self.weight_gradient + rhs.weight_gradient,
             bias_gradient: self.bias_gradient + rhs.bias_gradient,
         }
@@ -80,12 +80,12 @@ impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Add
 }
 
 impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Neg
-    for &LayerData<T, INPUTS, OUTPUTS>
+    for &LayerGradient<T, INPUTS, OUTPUTS>
 {
-    type Output = LayerData<T, INPUTS, OUTPUTS>;
+    type Output = LayerGradient<T, INPUTS, OUTPUTS>;
 
     fn neg(self) -> Self::Output {
-        LayerData::<T, INPUTS, OUTPUTS> {
+        LayerGradient::<T, INPUTS, OUTPUTS> {
             weight_gradient: -self.weight_gradient,
             bias_gradient: -self.bias_gradient,
         }
@@ -93,9 +93,9 @@ impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Neg
 }
 
 impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Sub
-    for &LayerData<T, INPUTS, OUTPUTS>
+    for &LayerGradient<T, INPUTS, OUTPUTS>
 {
-    type Output = LayerData<T, INPUTS, OUTPUTS>;
+    type Output = LayerGradient<T, INPUTS, OUTPUTS>;
 
     fn sub(self, rhs: Self) -> Self::Output {
         self + &-rhs
@@ -103,12 +103,12 @@ impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Sub
 }
 
 impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Mul<T>
-    for &LayerData<T, INPUTS, OUTPUTS>
+    for &LayerGradient<T, INPUTS, OUTPUTS>
 {
-    type Output = LayerData<T, INPUTS, OUTPUTS>;
+    type Output = LayerGradient<T, INPUTS, OUTPUTS>;
 
     fn mul(self, rhs: T) -> Self::Output {
-        LayerData::<T, INPUTS, OUTPUTS> {
+        LayerGradient::<T, INPUTS, OUTPUTS> {
             weight_gradient: self.weight_gradient * rhs,
             bias_gradient: self.bias_gradient * rhs,
         }

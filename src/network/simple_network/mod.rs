@@ -6,7 +6,11 @@ use serde::{Deserialize, Serialize};
 
 use super::Network;
 
-mod network_data;
+/// Defines Gradient, the object storing the gradient of all the weights and biases with respect to the loss function
+#[cfg(feature = "train")]
+mod gradient;
+/// Defines the functions and objects related to training a network to extract and use a gradient
+#[cfg(feature = "train")]
 mod network_training;
 
 /// Represents a network, a sequence of layer operations. Due to limitations in

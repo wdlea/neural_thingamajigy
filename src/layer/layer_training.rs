@@ -3,7 +3,7 @@ use rand::{distributions::Standard, prelude::Distribution};
 
 use crate::activators::Activator;
 
-use super::{Layer, LayerData};
+use super::{Layer, LayerGradient};
 
 impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Layer<T, INPUTS, OUTPUTS> {
     /// The gradient of the layer for a given set of inputs.
@@ -21,7 +21,7 @@ impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Layer<T, IN
         loss_gradients: SVector<T, OUTPUTS>,
         inputs: SVector<T, INPUTS>,
         activator: &impl Activator<T>,
-    ) -> (LayerData<T, INPUTS, OUTPUTS>, SVector<T, INPUTS>) {
+    ) -> (LayerGradient<T, INPUTS, OUTPUTS>, SVector<T, INPUTS>) {
         // each bias is shifted by it's respective loss
         let bias_gradient = loss_gradients;
 
@@ -32,7 +32,7 @@ impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Layer<T, IN
 
         let gradient = self.gradient(inputs, activator);
         (
-            LayerData {
+            LayerGradient {
                 weight_gradient,
                 bias_gradient,
             },

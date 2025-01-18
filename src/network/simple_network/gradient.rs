@@ -6,11 +6,11 @@ use std::{
 
 use nalgebra::RealField;
 
-use crate::{layer::LayerData, valueset::ValueSet};
+use crate::{layer::LayerGradient, valueset::ValueSet};
 
 /// Data about a network generated via backpropogation used in training.
 #[derive(Clone)]
-pub struct NetworkData<
+pub struct Gradient<
     T: RealField + Copy,
     const INPUTS: usize,
     const OUTPUTS: usize,
@@ -18,11 +18,11 @@ pub struct NetworkData<
     const HIDDEN: usize,
 > {
     /// Data about the first layer
-    pub first: LayerData<T, INPUTS, WIDTH>,
+    pub first: LayerGradient<T, INPUTS, WIDTH>,
     /// Data about all the hidden layers
-    pub hidden: [LayerData<T, WIDTH, WIDTH>; HIDDEN],
+    pub hidden: [LayerGradient<T, WIDTH, WIDTH>; HIDDEN],
     /// Data about the last layer
-    pub last: LayerData<T, WIDTH, OUTPUTS>,
+    pub last: LayerGradient<T, WIDTH, OUTPUTS>,
 }
 
 impl<
@@ -31,7 +31,7 @@ impl<
         const OUTPUTS: usize,
         const WIDTH: usize,
         const HIDDEN: usize,
-    > NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    > Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
     /// Calculates the mean of a slice of network data
     /// Due to technical limitations, this collection length must be representable with T
@@ -47,7 +47,7 @@ impl<
         const OUTPUTS: usize,
         const WIDTH: usize,
         const HIDDEN: usize,
-    > ValueSet<T> for NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    > ValueSet<T> for Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
     fn unary_operation(&self, f: impl Fn(&T) -> T) -> Self {
         Self {
@@ -89,11 +89,11 @@ impl<
     }
 
     fn all(v: T) -> Self {
-        let one_hidden = LayerData::all(v);
+        let one_hidden = LayerGradient::all(v);
         Self {
-            first: LayerData::all(v),
+            first: LayerGradient::all(v),
             hidden: from_fn(|_| one_hidden.clone()),
-            last: LayerData::all(v),
+            last: LayerGradient::all(v),
         }
     }
 }
@@ -105,11 +105,11 @@ impl<
         const OUTPUTS: usize,
         const WIDTH: usize,
         const HIDDEN: usize,
-    > Sum<&'a NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>>
-    for NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    > Sum<&'a Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>>
+    for Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
     fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
-        let mut sum = NetworkData::<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>::default();
+        let mut sum = Gradient::<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>::default();
 
         for i in iter {
             sum = &sum + i;
@@ -125,7 +125,7 @@ impl<
         const OUTPUTS: usize,
         const WIDTH: usize,
         const HIDDEN: usize,
-    > Default for NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    > Default for Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
     fn default() -> Self {
         Self {
@@ -142,9 +142,9 @@ impl<
         const OUTPUTS: usize,
         const WIDTH: usize,
         const HIDDEN: usize,
-    > Add for &NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    > Add for &Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
-    type Output = NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+    type Output = Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
 
     fn add(self, rhs: Self) -> Self::Output {
         Self::Output {
@@ -161,9 +161,9 @@ impl<
         const OUTPUTS: usize,
         const WIDTH: usize,
         const HIDDEN: usize,
-    > Neg for &NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    > Neg for &Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
-    type Output = NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+    type Output = Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
 
     fn neg(self) -> Self::Output {
         Self::Output {
@@ -180,9 +180,9 @@ impl<
         const OUTPUTS: usize,
         const WIDTH: usize,
         const HIDDEN: usize,
-    > Sub for &NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    > Sub for &Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
-    type Output = NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+    type Output = Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
 
     fn sub(self, rhs: Self) -> Self::Output {
         self + &-rhs
@@ -195,9 +195,9 @@ impl<
         const OUTPUTS: usize,
         const WIDTH: usize,
         const HIDDEN: usize,
-    > Mul<T> for &NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
+    > Mul<T> for &Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
 {
-    type Output = NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+    type Output = Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
 
     fn mul(self, rhs: T) -> Self::Output {
         Self::Output {

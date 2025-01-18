@@ -10,6 +10,7 @@ mod network;
 /// This holds the train function, allowing users to train their networks via MSE.
 #[cfg(feature = "train")]
 mod train;
+/// Defines the ValueSet trait, which abstracts over anything which is a nested collection of a value
 #[cfg(feature = "train")]
 mod valueset;
 

@@ -2,7 +2,7 @@
 #[cfg(feature = "train")]
 mod layer_data;
 #[cfg(feature = "train")]
-pub use layer_data::LayerData;
+pub use layer_data::LayerGradient;
 
 /// Contains everything relating to training a layer.
 #[cfg(feature = "train")]
