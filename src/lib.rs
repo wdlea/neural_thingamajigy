@@ -13,6 +13,6 @@ mod train;
 #[cfg(feature = "train")]
 mod valueset;
 
-pub use network::SimpleNetwork;
+pub use network::*;
 #[cfg(feature = "train")]
 pub use train::*;

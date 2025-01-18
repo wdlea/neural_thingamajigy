@@ -4,7 +4,7 @@ pub use simple_network::SimpleNetwork;
 
 use nalgebra::{RealField, SVector};
 
-use crate::activators::Activator;
+use crate::{activators::Activator, valueset::ValueSet};
 
 pub trait Network<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> {
     fn evaluate(
@@ -17,7 +17,7 @@ pub trait Network<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize
 #[cfg(feature = "train")]
 pub trait TrainableNetwork<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> {
     type LayerInputs;
-    type Gradient;
+    type Gradient: ValueSet<T> + Default;
 
     fn evaluate_training(
         &self,

@@ -43,6 +43,21 @@ impl<T: ComplexField, const WIDTH: usize, const HEIGHT: usize> ValueSet<T>
     }
 }
 
+pub fn sum_count<T: ComplexField + Copy, V: ValueSet<T> + Default>(v: &[V]) -> (V, T) {
+    let mut count = T::zero();
+    let sum = v.iter().fold(V::default(), |acc, ele| {
+        count += T::one(); // assuming this is either saturating or panics on overflow
+        acc.binary_operation(ele, |&a, &b| a + b)
+    });
+
+    (sum, count)
+}
+
+pub fn mean<T: ComplexField + Copy, V: ValueSet<T> + Default>(v: &[V]) -> V {
+    let (sum, count) = sum_count(v);
+    sum.unary_operation(|&x| x / count)
+}
+
 mod test {
     #[test]
     fn test_gradient_impl() {

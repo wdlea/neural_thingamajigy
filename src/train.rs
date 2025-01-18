@@ -14,6 +14,7 @@ pub use crate::layer::LayerData;
 use crate::{
     activators::Activator,
     network::{Network, TrainableNetwork},
+    valueset::mean,
     SimpleNetwork,
 };
 
@@ -24,15 +25,15 @@ use crate::{
 pub fn train<
     'a,
     T: RealField + Copy + From<u8>,
+    N: TrainableNetwork<T, INPUTS, OUTPUTS>,
     const INPUTS: usize,
     const OUTPUTS: usize,
-    N: TrainableNetwork<T, INPUTS, OUTPUTS>,
 >(
     data: impl Iterator<Item = &'a (SVector<T, INPUTS>, SVector<T, OUTPUTS>)>,
     network: &mut N,
     activator: &impl Activator<T>,
     loss_function: &LossFunction<T, OUTPUTS>,
-    optimiser: &mut impl Optimiser<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+    optimiser: &mut impl Optimiser<T, N::Gradient>,
 ) -> T {
     let mut total_loss = T::zero();
 
@@ -52,7 +53,7 @@ pub fn train<
         )
         .collect();
 
-    let gradient = NetworkData::mean(&gradients); // mean error
+    let gradient = mean(gradients.as_slice()); // mean error
 
     let step = optimiser.transform(&gradient);
 
