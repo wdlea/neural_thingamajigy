@@ -2,7 +2,6 @@ extern crate std;
 
 use crate::valueset::ValueSet;
 use nalgebra::{RealField, SMatrix, SVector};
-use std::ops::{Add, Mul, Neg, Sub};
 
 /// Data about a layer generated via backpropogation used in training.
 #[derive(Clone)]
@@ -62,55 +61,6 @@ impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Default
         Self {
             weight_gradient: SMatrix::zeros(),
             bias_gradient: SMatrix::zeros(),
-        }
-    }
-}
-
-impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Add
-    for &LayerGradient<T, INPUTS, OUTPUTS>
-{
-    type Output = LayerGradient<T, INPUTS, OUTPUTS>;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        LayerGradient::<T, INPUTS, OUTPUTS> {
-            weight_gradient: self.weight_gradient + rhs.weight_gradient,
-            bias_gradient: self.bias_gradient + rhs.bias_gradient,
-        }
-    }
-}
-
-impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Neg
-    for &LayerGradient<T, INPUTS, OUTPUTS>
-{
-    type Output = LayerGradient<T, INPUTS, OUTPUTS>;
-
-    fn neg(self) -> Self::Output {
-        LayerGradient::<T, INPUTS, OUTPUTS> {
-            weight_gradient: -self.weight_gradient,
-            bias_gradient: -self.bias_gradient,
-        }
-    }
-}
-
-impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Sub
-    for &LayerGradient<T, INPUTS, OUTPUTS>
-{
-    type Output = LayerGradient<T, INPUTS, OUTPUTS>;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        self + &-rhs
-    }
-}
-
-impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Mul<T>
-    for &LayerGradient<T, INPUTS, OUTPUTS>
-{
-    type Output = LayerGradient<T, INPUTS, OUTPUTS>;
-
-    fn mul(self, rhs: T) -> Self::Output {
-        LayerGradient::<T, INPUTS, OUTPUTS> {
-            weight_gradient: self.weight_gradient * rhs,
-            bias_gradient: self.bias_gradient * rhs,
         }
     }
 }
