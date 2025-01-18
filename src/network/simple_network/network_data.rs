@@ -6,7 +6,7 @@ use std::{
 
 use nalgebra::RealField;
 
-use crate::layer::LayerData;
+use crate::{layer::LayerData, valueset::ValueSet};
 
 /// Data about a network generated via backpropogation used in training.
 #[derive(Clone)]
@@ -39,32 +39,61 @@ impl<
         let length = T::one() / T::from_usize(collection.len()).unwrap();
         &collection.iter().sum::<Self>() * (T::one() / length)
     }
+}
 
-    /// Creates a NetworkData with all underlying values set to `value`
-    pub fn all(value: T) -> Self {
+impl<
+        T: RealField + Copy,
+        const INPUTS: usize,
+        const OUTPUTS: usize,
+        const WIDTH: usize,
+        const HIDDEN: usize,
+    > ValueSet<T> for NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
+{
+    fn unary_operation(&self, f: impl Fn(&T) -> T) -> Self {
         Self {
-            first: LayerData::all(value),
-            hidden: from_fn(|_| LayerData::all(value)),
-            last: LayerData::all(value),
+            first: self.first.unary_operation(&f),
+            hidden: self.hidden.clone().map(|h| h.unary_operation(&f)),
+            last: self.last.unary_operation(f),
         }
     }
 
-    /// Transforms all underlying values using `f`
-    #[must_use]
-    pub fn map(&self, f: &impl Fn(T) -> T) -> Self {
+    fn binary_operation(&self, other: &Self, f: impl Fn(&T, &T) -> T) -> Self {
+        let mut hidden_counter = 0usize;
         Self {
-            first: self.first.map(f),
-            hidden: from_fn(|i| self.hidden[i].map(f)),
-            last: self.last.map(f),
+            first: self.first.binary_operation(&other.first, &f),
+            hidden: self.hidden.clone().map(|a| {
+                let b = &other.hidden[hidden_counter];
+                hidden_counter += 1;
+                a.binary_operation(b, &f)
+            }),
+            last: self.last.binary_operation(&other.last, f),
         }
     }
 
-    /// Performs f on corresponding entries in lhs and rhs to generate a new matrix with the results
-    pub fn binary_elementwise(lhs: &Self, rhs: &Self, f: &impl Fn(T, T) -> T) -> Self {
+    fn unary_inspection(&self, f: &mut impl FnMut(&T)) {
+        self.first.unary_inspection(f);
+        self.hidden.iter().for_each(|h| h.unary_inspection(f));
+        self.last.unary_inspection(f);
+    }
+
+    fn binary_inspection(&self, other: &Self, f: &mut impl FnMut(&T, &T)) {
+        let mut hidden_counter = 0usize;
+
+        self.first.binary_inspection(&other.first, f);
+        self.hidden.iter().for_each(|a| {
+            let b = &other.hidden[hidden_counter];
+            hidden_counter += 1;
+            a.binary_inspection(b, f)
+        });
+        self.last.binary_inspection(&other.last, f);
+    }
+
+    fn all(v: T) -> Self {
+        let one_hidden = LayerData::all(v);
         Self {
-            first: LayerData::binary_elementwise(&lhs.first, &rhs.first, f),
-            hidden: from_fn(|i| LayerData::binary_elementwise(&lhs.hidden[i], &rhs.hidden[i], f)),
-            last: LayerData::binary_elementwise(&lhs.last, &rhs.last, f),
+            first: LayerData::all(v),
+            hidden: from_fn(|_| one_hidden.clone()),
+            last: LayerData::all(v),
         }
     }
 }

@@ -1,6 +1,8 @@
 use std::ops::{Add, Mul, Neg, Sub};
 
-use nalgebra::{RealField, SMatrix, SVector, Scalar};
+use nalgebra::{RealField, SMatrix, SVector};
+
+use crate::valueset::ValueSet;
 
 /// Data about a layer generated via backpropogation used in training.
 #[derive(Clone)]
@@ -12,39 +14,43 @@ pub struct LayerData<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: us
     pub bias_gradient: SVector<T, OUTPUTS>,
 }
 
-/// Performs f(lhs, rhs) on every value to generate a new Matrix
-fn mat_binary_elementwise<T: Copy, O: Scalar, const R: usize, const C: usize>(
-    lhs: &SMatrix<T, R, C>,
-    rhs: &SMatrix<T, R, C>,
-    f: &impl Fn(T, T) -> O,
-) -> SMatrix<O, R, C> {
-    SMatrix::from_fn(|i, j| f(lhs[(i, j)], rhs[(i, j)]))
-}
-
-impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> LayerData<T, INPUTS, OUTPUTS> {
-    /// Creates a LayerData with all values(within *all* matrices) set to `value`
-    pub fn all(value: T) -> Self {
+impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> ValueSet<T>
+    for LayerData<T, INPUTS, OUTPUTS>
+{
+    fn unary_operation(&self, f: impl Fn(&T) -> T) -> Self {
         Self {
-            weight_gradient: SMatrix::from_fn(|_, _| value),
-            bias_gradient: SMatrix::from_fn(|_, _| value),
+            weight_gradient: self.weight_gradient.unary_operation(&f),
+            bias_gradient: self.bias_gradient.unary_operation(&f),
         }
     }
 
-    /// Performs .map(f) on *all* matrices contained by LayerData
-    #[must_use]
-    pub fn map(&self, f: &impl Fn(T) -> T) -> Self {
+    fn binary_operation(&self, other: &Self, f: impl Fn(&T, &T) -> T) -> Self {
         Self {
-            weight_gradient: self.weight_gradient.map(f),
-            bias_gradient: self.bias_gradient.map(f),
+            weight_gradient: self
+                .weight_gradient
+                .binary_operation(&other.weight_gradient, &f),
+            bias_gradient: self
+                .bias_gradient
+                .binary_operation(&other.bias_gradient, &f),
         }
     }
 
-    /// Performs f(lhs, rhs) on every value to generate a new LayerData
-    #[must_use]
-    pub fn binary_elementwise(lhs: &Self, rhs: &Self, f: &impl Fn(T, T) -> T) -> Self {
+    fn unary_inspection(&self, f: &mut impl FnMut(&T)) {
+        self.weight_gradient.unary_inspection(f);
+        self.bias_gradient.unary_inspection(f);
+    }
+
+    fn binary_inspection(&self, other: &Self, f: &mut impl FnMut(&T, &T)) {
+        self.weight_gradient
+            .binary_inspection(&other.weight_gradient, f);
+        self.bias_gradient
+            .binary_inspection(&other.bias_gradient, f);
+    }
+
+    fn all(v: T) -> Self {
         Self {
-            weight_gradient: mat_binary_elementwise(&lhs.weight_gradient, &rhs.weight_gradient, f),
-            bias_gradient: mat_binary_elementwise(&lhs.bias_gradient, &rhs.bias_gradient, f),
+            weight_gradient: SMatrix::all(v),
+            bias_gradient: SMatrix::all(v),
         }
     }
 }
