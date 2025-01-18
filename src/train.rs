@@ -10,7 +10,7 @@ use loss::LossFunction;
 use nalgebra::{RealField, SVector};
 use optimiser::Optimiser;
 
-pub use crate::layer::LayerData;
+pub use crate::layer::LayerGradient;
 use crate::{
     activators::Activator,
     network::{Network, TrainableNetwork},

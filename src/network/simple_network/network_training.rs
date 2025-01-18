@@ -4,11 +4,11 @@ use std::{array::from_fn, iter::zip, mem::MaybeUninit};
 
 use crate::{
     activators::Activator,
-    layer::{Layer, LayerData},
+    layer::{Layer, LayerGradient},
     network::{RandomisableNetwork, TrainableNetwork},
 };
 
-use super::{network_data::NetworkData, SimpleNetwork};
+use super::{gradient::Gradient, SimpleNetwork};
 
 /// Inputs to each layer of the network, used in training.
 #[derive(Clone)]
@@ -37,7 +37,7 @@ impl<
 {
     type LayerInputs = TrainingInputs<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
 
-    type Gradient = NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+    type Gradient = Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
 
     /// The same thing as evaluate, but returns the inputs to each layer
     /// as well. This will incur a performance penalty.
@@ -80,14 +80,14 @@ impl<
         output_loss_gradients: SVector<T, OUTPUTS>,
         activator: &impl Activator<T>,
     ) -> (
-        NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+        Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
         SVector<T, INPUTS>,
     ) {
         let (last, mut current_loss_gradient) =
             self.last
                 .backpropogate(output_loss_gradients, data.hidden_output, activator);
 
-        let mut hidden: [MaybeUninit<LayerData<T, WIDTH, WIDTH>>; HIDDEN] =
+        let mut hidden: [MaybeUninit<LayerGradient<T, WIDTH, WIDTH>>; HIDDEN] =
             from_fn(|_| MaybeUninit::uninit()); // every value gets something assigned to it eventually
 
         // This loop assigns something to every element of HIDDEN, so the uninitialized memory is eventually replaced with acceptable values
@@ -108,12 +108,12 @@ impl<
                 .backpropogate(current_loss_gradient, data.input, activator);
 
         (
-            NetworkData {
+            Gradient {
                 first,
                 hidden: unsafe {
                     hidden
                         .as_ptr()
-                        .cast::<[LayerData<T, WIDTH, WIDTH>; HIDDEN]>()
+                        .cast::<[LayerGradient<T, WIDTH, WIDTH>; HIDDEN]>()
                         .read()
                 }, // as MaybeUninit is a union: () | T, the largest type will be T and thus this will be correctly sized and i can do this cast
                 last,
@@ -123,7 +123,7 @@ impl<
     }
 
     /// Applies a nudge to the network
-    fn apply_nudge(&mut self, nudge: NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>) {
+    fn apply_nudge(&mut self, nudge: Gradient<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>) {
         self.first
             .apply_shifts(nudge.first.weight_gradient, nudge.first.bias_gradient);
 

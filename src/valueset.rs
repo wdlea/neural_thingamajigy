@@ -2,6 +2,7 @@ use std::iter::zip;
 
 use nalgebra::{ComplexField, SMatrix};
 
+/// Represents anything which is a nested collection of a value
 pub trait ValueSet<T: Clone>: Sized {
     /// Executes f for every entry, returning the transformed value
     fn unary_operation(&self, f: impl Fn(&T) -> T) -> Self;
@@ -43,6 +44,7 @@ impl<T: ComplexField, const WIDTH: usize, const HEIGHT: usize> ValueSet<T>
     }
 }
 
+/// Returns the sum and count of the ValueSets in v
 pub fn sum_count<T: ComplexField + Copy, V: ValueSet<T> + Default>(v: &[V]) -> (V, T) {
     let mut count = T::zero();
     let sum = v.iter().fold(V::default(), |acc, ele| {
@@ -53,11 +55,13 @@ pub fn sum_count<T: ComplexField + Copy, V: ValueSet<T> + Default>(v: &[V]) -> (
     (sum, count)
 }
 
+/// Returns the mean(component-wise) of the ValueSets in v
 pub fn mean<T: ComplexField + Copy, V: ValueSet<T> + Default>(v: &[V]) -> V {
     let (sum, count) = sum_count(v);
     sum.unary_operation(|&x| x / count)
 }
 
+/// Tests for ValueSet on matrices
 mod test {
     #[test]
     fn test_gradient_impl() {
