@@ -10,6 +10,8 @@ mod network;
 /// This holds the train function, allowing users to train their networks via MSE.
 #[cfg(feature = "train")]
 mod train;
+#[cfg(feature = "train")]
+mod valueset;
 
 pub use network::SimpleNetwork;
 #[cfg(feature = "train")]

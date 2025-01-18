@@ -2,34 +2,20 @@ use core::f32;
 
 use nalgebra::RealField;
 
+use crate::valueset::ValueSet;
+
 /// Represents an optimiser
-pub trait Optimiser<
-    T: RealField + Copy,
-    const INPUTS: usize,
-    const OUTPUTS: usize,
-    const WIDTH: usize,
-    const HIDDEN: usize,
->
-{
+pub trait Optimiser<T: RealField + Copy, G> {
     /// Transforms the gradient into the step to take
-    fn transform(
-        &mut self,
-        gradient: &NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
-    ) -> NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>;
+    fn transform(&mut self, gradient: &G) -> G;
 }
 
 /// The ADAM optimiser
-pub struct AdamOptimiser<
-    T: RealField + Copy,
-    const INPUTS: usize,
-    const OUTPUTS: usize,
-    const WIDTH: usize,
-    const HIDDEN: usize,
-> {
+pub struct AdamOptimiser<T: RealField + Copy, G: ValueSet<T>> {
     /// The momentum variable in the ADAM optimiser
-    momentum: NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+    momentum: G,
     /// The velocity variable in the ADAM optimiser
-    velocity: NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+    velocity: G,
 
     /// Learning rate(alpha) hyperparameter
     pub learning_rate: T,
@@ -44,19 +30,12 @@ pub struct AdamOptimiser<
     accumulated_velocity: T,
 }
 
-impl<
-        T: RealField + Copy,
-        const INPUTS: usize,
-        const OUTPUTS: usize,
-        const WIDTH: usize,
-        const HIDDEN: usize,
-    > AdamOptimiser<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
-{
+impl<T: RealField + Copy, G: ValueSet<T> + Default> AdamOptimiser<T, G> {
     /// Creates a new AdamOptimiser with the given hyperparameters
     pub fn new(learning_rate: T, momentum_mixer: T, velocity_mixer: T) -> Self {
         Self {
-            momentum: NetworkData::default(),
-            velocity: NetworkData::default(),
+            momentum: G::default(),
+            velocity: G::default(),
             learning_rate,
             momentum_mixer,
             velocity_mixer,
@@ -66,53 +45,40 @@ impl<
     }
 }
 
-impl<
-        T: RealField + Copy + From<f32>,
-        const INPUTS: usize,
-        const OUTPUTS: usize,
-        const WIDTH: usize,
-        const HIDDEN: usize,
-    > Default for AdamOptimiser<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
-{
+impl<T: RealField + Copy + From<f32>, G: ValueSet<T> + Default> Default for AdamOptimiser<T, G> {
     fn default() -> Self {
         Self::new(0.001.into(), 0.9.into(), 0.999.into())
     }
 }
 
-impl<
-        T: RealField + Copy,
-        const INPUTS: usize,
-        const OUTPUTS: usize,
-        const WIDTH: usize,
-        const HIDDEN: usize,
-    > Optimiser<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
-    for AdamOptimiser<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>
-{
-    fn transform(
-        &mut self,
-        gradient: &NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
-    ) -> NetworkData<T, INPUTS, OUTPUTS, WIDTH, HIDDEN> {
+impl<T: RealField + Copy, G: ValueSet<T>> Optimiser<T, G> for AdamOptimiser<T, G> {
+    fn transform(&mut self, gradient: &G) -> G {
         // Calculate M[t+1] and V[t+1] respectively:
-        self.momentum = &(&self.momentum * self.momentum_mixer)
-            + &(gradient * (T::one() - self.momentum_mixer));
-        self.velocity = &(&self.velocity * self.velocity_mixer)
-            + &(&gradient.map(&|v| v * v) * (T::one() - self.velocity_mixer));
+        self.momentum = self.momentum.binary_operation(gradient, |&mom, &gra| {
+            mom * self.momentum_mixer + gra * (T::one() - self.momentum_mixer)
+        });
+
+        self.velocity = self.velocity.binary_operation(gradient, |&vel, &gra| {
+            vel * self.velocity_mixer + gra.powi(2) * (T::one() - self.velocity_mixer)
+        });
 
         // Calculate M^ [t+1] and V^ [t+1] respectively:
-        let corrected_momentum =
-            &self.momentum * (T::one() / (T::one() - self.accumulated_momentum));
-        let corrected_velocity =
-            &self.velocity * (T::one() / (T::one() - self.accumulated_velocity));
+        let corrected_momentum = self
+            .momentum
+            .unary_operation(|&mom| mom / (T::one() - self.accumulated_momentum));
+        let corrected_velocity = self
+            .velocity
+            .unary_operation(|&vel| vel / (T::one() - self.accumulated_velocity));
 
         // Update accumulated values
         self.accumulated_momentum *= self.momentum_mixer;
         self.accumulated_velocity *= self.velocity_mixer;
 
-        NetworkData::binary_elementwise(
-            &corrected_momentum,
-            &(&corrected_velocity.map(&|v: T| v.sqrt())
-                + &NetworkData::all(T::min_value().unwrap())), // assuming min_value is equivialent to f32::EPSILON
-            &|lhs, rhs| lhs / rhs * -self.learning_rate,
-        )
+        
+        corrected_momentum.binary_operation(&corrected_velocity, 
+        |&mom, &vel|{
+            -self.learning_rate * mom / (vel.sqrt() + T::min_value().expect("T has no minimum value"))
+        }
+    )
     }
 }
