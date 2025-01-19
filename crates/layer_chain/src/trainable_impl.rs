@@ -19,6 +19,8 @@ pub fn generate_trainable_network_impl(
 
     let evaluate_training_impl =
         generate_evaluate_training_impl(num_type, network_inputs, network_outputs, names);
+    let get_gradient_impl =
+        generate_get_gradient_impl(num_type, network_inputs, network_outputs, names);
 
     quote! {
         #network_layer_inputs_impl
@@ -29,14 +31,7 @@ pub fn generate_trainable_network_impl(
 
             #evaluate_training_impl
 
-            fn get_gradient(
-                &self,
-                layer_inputs: &Self::LayerInputs,
-                output_loss_gradients: nalgebra::SVector<#num_type, #network_outputs>,
-                activator: &impl neural_thingamajigy::activators::Activator<#num_type>,
-            ) -> (Self::Gradient, nalgebra::SVector<#num_type, #network_inputs>){
-                todo!();
-            }
+            #get_gradient_impl
 
             fn apply_nudge(&mut self, nudge: Self::Gradient){
                 todo!();
@@ -115,6 +110,34 @@ fn generate_evaluate_training_impl(
             };
 
             (outputs, all_inputs)
+        }
+    }
+}
+
+fn generate_get_gradient_impl(
+    num_type: &Type,
+    network_inputs: &LitInt,
+    network_outputs: &LitInt,
+    names: &[Ident],
+) -> TokenStream {
+    let reversed_names: Vec<_> = names.iter().rev().collect();
+
+    quote! {
+        fn get_gradient(
+            &self,
+            layer_inputs: &Self::LayerInputs,
+            output_loss_gradients: nalgebra::SVector<#num_type, #network_outputs>,
+            activator: &impl neural_thingamajigy::activators::Activator<#num_type>,
+        ) -> (Self::Gradient, nalgebra::SVector<#num_type, #network_inputs>){
+            let current_loss_gradient = output_loss_gradients;
+            #(let (#reversed_names, current_loss_gradient) = self.#reversed_names.backpropogate(current_loss_gradient, layer_inputs.#reversed_names, activator);)*
+
+            (
+                Self::Gradient{
+                    #(#reversed_names),*
+                },
+                current_loss_gradient
+            )
         }
     }
 }
