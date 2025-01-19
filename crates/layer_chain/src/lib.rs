@@ -51,11 +51,16 @@ pub fn layer_chain(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
     }
 
     let (struct_definiton, inputs, outputs, names) =
-        generate_struct_definition(visibility, &name, &num_type, &layers);
+        generate_struct_definition(&visibility, &name, &num_type, &layers);
 
     let network_impl = network_impl::generate_network_impl(&num_type, &layers, &names, &name);
     let trainable_network_impl = trainable_impl::generate_trainable_network_impl(
-        &name, &names, &inputs, &outputs, &num_type,
+        &visibility,
+        &name,
+        &names,
+        &inputs,
+        &outputs,
+        &num_type,
     );
 
     let emitted_code = quote! {
@@ -70,7 +75,7 @@ pub fn layer_chain(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
 }
 
 fn generate_struct_definition(
-    visibility: Visibility,
+    visibility: &Visibility,
     name: &Ident,
     num_type: &Type,
     layers: &[LitInt],

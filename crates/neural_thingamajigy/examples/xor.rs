@@ -1,4 +1,3 @@
-use layer_chain::layer_chain;
 use nalgebra::{Vector1, Vector2};
 use neural_thingamajigy::{
     activators, loss::squared_error, optimiser::AdamOptimiser, train, Network, RandomisableNetwork,
@@ -49,5 +48,3 @@ fn main() {
         break;
     }
 }
-
-layer_chain!(pub EpicNetwork, f32, 300, 4, 2, 1);

@@ -1,8 +1,9 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{Ident, LitInt, Type};
+use syn::{Ident, LitInt, Type, Visibility};
 
 pub fn generate_trainable_network_gradient(
+    visibility: &Visibility,
     name: &Ident,
     names: &[Ident],
     inputs: &[LitInt],
@@ -14,7 +15,7 @@ pub fn generate_trainable_network_gradient(
     (
         quote! {
             #[derive(Default)]
-            struct #inputs_name{
+            #visibility struct #inputs_name{
                 #(#names: neural_thingamajigy::LayerGradient<#num_type, #inputs, #outputs>), *
             }
 
