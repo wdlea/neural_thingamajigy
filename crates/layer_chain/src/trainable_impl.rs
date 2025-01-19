@@ -21,7 +21,7 @@ pub fn generate_trainable_network_impl(
         generate_evaluate_training_impl(num_type, network_inputs, network_outputs, names);
     let get_gradient_impl =
         generate_get_gradient_impl(num_type, network_inputs, network_outputs, names);
-
+    let apply_nudge_impl = generate_apply_nudge_impl(names);
     quote! {
         #network_layer_inputs_impl
         #network_gradient_impl
@@ -33,9 +33,7 @@ pub fn generate_trainable_network_impl(
 
             #get_gradient_impl
 
-            fn apply_nudge(&mut self, nudge: Self::Gradient){
-                todo!();
-            }
+            #apply_nudge_impl
         }
     }
 }
@@ -138,6 +136,14 @@ fn generate_get_gradient_impl(
                 },
                 current_loss_gradient
             )
+        }
+    }
+}
+
+fn generate_apply_nudge_impl(names: &[Ident]) -> TokenStream {
+    quote! {
+        fn apply_nudge(&mut self, nudge: Self::Gradient){
+            #(self.#names.apply_shifts(nudge.#names.weight_gradient, nudge.#names.bias_gradient));*
         }
     }
 }
