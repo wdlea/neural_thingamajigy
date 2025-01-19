@@ -1,0 +1,8 @@
+[package]
+name = "layer_chain"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+"neural_thingamajigy" = {path = "../neural_thingamajigy"}
+syn = "2"
