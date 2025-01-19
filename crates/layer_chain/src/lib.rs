@@ -47,25 +47,12 @@ pub fn layer_chain(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
         panic!("You need to supply at least 2 layer width parameters");
     }
 
-    let inputs: Vec<_> = layers.iter().collect();
-    let outputs: Vec<_> = layers.iter().skip(1).collect();
-    let names: Vec<_> = (0usize..)
-        .take(outputs.len())
-        .map(|i| format_ident!("layer{}", i))
-        .collect();
-
-    assert_eq!(inputs.len(), outputs.len() + 1);
-    assert_eq!(outputs.len(), names.len());
-
-    let struct_definiton = quote! {
-        #visibility struct #name {
-            #(#names: neural_thingamajigy::Layer<#num_type, #inputs, #outputs>), *
-        }
-    };
+    let (struct_definiton, names) =
+        generate_struct_definition(visibility, &name, &num_type, &layers);
 
     let network_impl = generate_network_impl(num_type, &layers, &names, name);
 
-    let emitted_code = quote!{
+    let emitted_code = quote! {
         #struct_definiton
         #network_impl
     };
@@ -75,9 +62,34 @@ pub fn layer_chain(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
     emitted_code.into()
 }
 
+fn generate_struct_definition(
+    visibility: Visibility,
+    name: &Ident,
+    num_type: &Type,
+    layers: &[LitInt],
+) -> (TokenStream, Vec<Ident>) {
+    let inputs: Vec<_> = layers.iter().collect();
+    let outputs: Vec<_> = layers.iter().skip(1).collect();
+    let names: Vec<_> = (0usize..)
+        .take(outputs.len())
+        .map(|i| format_ident!("layer{}", i))
+        .collect();
+
+    assert_eq!(inputs.len(), outputs.len() + 1);
+
+    (
+        quote! {
+            #visibility struct #name {
+                #(#names: neural_thingamajigy::Layer<#num_type, #inputs, #outputs>), *
+            }
+        },
+        names,
+    )
+}
+
 fn generate_network_impl(
     num_type: Type,
-    layers: &Vec<LitInt>,
+    layers: &[LitInt],
     names: &Vec<Ident>,
     name: Ident,
 ) -> TokenStream {
@@ -97,7 +109,7 @@ fn generate_network_impl(
         .collect();
 
     quote! {
-        impl neural_thingamajigy::network::Network<#num_type, #network_inputs, #network_outputs> for #name{
+        impl neural_thingamajigy::Network<#num_type, #network_inputs, #network_outputs> for #name{
             fn evaluate(
                 &self,
                 inputs: nalgebra::SVector<#num_type, #network_inputs>,
