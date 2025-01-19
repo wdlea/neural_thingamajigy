@@ -17,6 +17,9 @@ pub fn generate_trainable_network_impl(
     let network_inputs = inputs.first().unwrap();
     let network_outputs = outputs.last().unwrap();
 
+    let evaluate_training_impl =
+        generate_evaluate_training_impl(num_type, network_inputs, network_outputs, names);
+
     quote! {
         #network_layer_inputs_impl
         #network_gradient_impl
@@ -24,13 +27,7 @@ pub fn generate_trainable_network_impl(
             type LayerInputs = #network_layer_inputs_name;
             type Gradient = #network_gradient_impl_name;
 
-            fn evaluate_training(
-                &self,
-                inputs: nalgebra::SVector<#num_type, #network_inputs>,
-                activator: &impl neural_thingamajigy::activators::Activator<#num_type>,
-            ) -> (nalgebra::SVector<#num_type, #network_outputs>, Self::LayerInputs){
-                todo!();
-            }
+            #evaluate_training_impl
 
             fn get_gradient(
                 &self,
@@ -84,4 +81,40 @@ fn generate_trainable_network_gradient(
         },
         inputs_name,
     )
+}
+
+fn generate_evaluate_training_impl(
+    num_type: &Type,
+    network_inputs: &LitInt,
+    network_outputs: &LitInt,
+    names: &[Ident],
+) -> TokenStream {
+    let input_variable_name: Vec<_> = [format_ident!("inputs")]
+        .iter()
+        .cloned()
+        .chain(names.iter().skip(1).map(|i| format_ident!("{}_input", i)))
+        .collect();
+
+    let output_variable_name: Vec<_> = names
+        .iter()
+        .skip(1)
+        .map(|i| format_ident!("{}_input", i))
+        .chain([format_ident!("outputs")].iter().cloned())
+        .collect();
+
+    quote! {
+        fn evaluate_training(
+            &self,
+            inputs: nalgebra::SVector<#num_type, #network_inputs>,
+            activator: &impl neural_thingamajigy::activators::Activator<#num_type>,
+        ) -> (nalgebra::SVector<#num_type, #network_outputs>, Self::LayerInputs){
+            #(let #output_variable_name = self.#names.through(#input_variable_name, activator);)*
+
+            let all_inputs = Self::LayerInputs{
+                #(#names: #input_variable_name),*
+            };
+
+            (outputs, all_inputs)
+        }
+    }
 }
