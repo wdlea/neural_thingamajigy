@@ -2,6 +2,8 @@ use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{Ident, LitInt, Type};
 
+mod gradient;
+
 pub fn generate_trainable_network_impl(
     name: &Ident,
     names: &[Ident],
@@ -12,7 +14,7 @@ pub fn generate_trainable_network_impl(
     let (network_layer_inputs_impl, network_layer_inputs_name) =
         generate_trainable_network_inputs(name, names, inputs, num_type);
     let (network_gradient_impl, network_gradient_impl_name) =
-        generate_trainable_network_gradient(name, names, inputs, outputs, num_type);
+        gradient::generate_trainable_network_gradient(name, names, inputs, outputs, num_type);
 
     let network_inputs = inputs.first().unwrap();
     let network_outputs = outputs.last().unwrap();
@@ -50,26 +52,6 @@ fn generate_trainable_network_inputs(
         quote! {
             struct #inputs_name{
                 #(#names: nalgebra::SVector<#num_type, #inputs>), *
-            }
-        },
-        inputs_name,
-    )
-}
-
-fn generate_trainable_network_gradient(
-    name: &Ident,
-    names: &[Ident],
-    inputs: &[LitInt],
-    outputs: &[LitInt],
-    num_type: &Type,
-) -> (TokenStream, Ident) {
-    let inputs_name = format_ident!("{}Gradient", name);
-
-    (
-        quote! {
-            #[derive(Default)]
-            struct #inputs_name{
-                #(#names: neural_thingamajigy::LayerGradient<#num_type, #inputs, #outputs>), *
             }
         },
         inputs_name,
