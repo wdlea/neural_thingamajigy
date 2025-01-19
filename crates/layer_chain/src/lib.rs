@@ -1,4 +1,4 @@
-use proc_macro::TokenStream;
+use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{parse::Parse, parse_macro_input, Ident, LitInt, Token, Type, Visibility};
 
@@ -36,7 +36,7 @@ impl Parse for LayerChainParams {
 }
 
 #[proc_macro]
-pub fn layer_chain(tokens: TokenStream) -> TokenStream {
+pub fn layer_chain(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let LayerChainParams {
         visibility,
         num_type,
@@ -63,6 +63,24 @@ pub fn layer_chain(tokens: TokenStream) -> TokenStream {
         }
     };
 
+    let network_impl = generate_network_impl(num_type, &layers, &names, name);
+
+    let emitted_code = quote!{
+        #struct_definiton
+        #network_impl
+    };
+
+    eprintln!("{}", emitted_code);
+
+    emitted_code.into()
+}
+
+fn generate_network_impl(
+    num_type: Type,
+    layers: &Vec<LitInt>,
+    names: &Vec<Ident>,
+    name: Ident,
+) -> TokenStream {
     let network_inputs = layers.first().unwrap();
     let network_outputs = layers.last().unwrap();
 
@@ -78,8 +96,8 @@ pub fn layer_chain(tokens: TokenStream) -> TokenStream {
         .chain([format_ident!("outputs")].iter().cloned())
         .collect();
 
-    let network_impl = quote! {
-        impl Network<#num_type, #network_inputs, #network_outputs> for #name{
+    quote! {
+        impl neural_thingamajigy::network::Network<#num_type, #network_inputs, #network_outputs> for #name{
             fn evaluate(
                 &self,
                 inputs: nalgebra::SVector<#num_type, #network_inputs>,
@@ -90,15 +108,5 @@ pub fn layer_chain(tokens: TokenStream) -> TokenStream {
                 outputs
             }
         }
-    };
-
-    let emitted_code = quote! {
-        #struct_definiton
-
-        #network_impl
-    };
-
-    eprintln!("{}", emitted_code);
-
-    emitted_code.into()
+    }
 }
