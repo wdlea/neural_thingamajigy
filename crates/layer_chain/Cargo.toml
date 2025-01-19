@@ -4,5 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-"neural_thingamajigy" = {path = "../neural_thingamajigy"}
 syn = "2"
+quote = "1"
+
+[lib]
+proc-macro = true

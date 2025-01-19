@@ -12,6 +12,7 @@ nalgebra = {version="0.33.2", default-features=false}
 rand = {version="0.8.5", optional=true}
 serde = { version = "1.0.*", default-features = false, optional=true }
 serde_arrays = { version = "0.1.0", optional=true }
+layer_chain = {path = "../layer_chain"}
 
 [[example]]
 name="xor"

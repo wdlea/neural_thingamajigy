@@ -17,4 +17,4 @@ mod valueset;
 
 pub use network::*;
 #[cfg(feature = "train")]
-pub use train::*;
+pub use {layer::Layer, train::*};

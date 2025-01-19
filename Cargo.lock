@@ -44,7 +44,7 @@ dependencies = [
 name = "layer_chain"
 version = "0.1.0"
 dependencies = [
- "neural_thingamajigy",
+ "quote",
  "syn",
 ]
 
@@ -81,6 +81,7 @@ dependencies = [
 name = "neural_thingamajigy"
 version = "0.7.2"
 dependencies = [
+ "layer_chain",
  "nalgebra",
  "rand",
  "serde",
