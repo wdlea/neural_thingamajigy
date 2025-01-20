@@ -1,14 +1,16 @@
+use layer_chain::layer_chain;
 use nalgebra::{Vector1, Vector2};
 use neural_thingamajigy::{
     activators, loss::squared_error, optimiser::AdamOptimiser, train, Network, RandomisableNetwork,
-    SimpleNetwork,
 };
 use rand::rngs::OsRng;
+
+layer_chain!(pub MyNetwork, f32, 2, 5, 5, 1);
 
 fn main() {
     let activator = activators::Sigmoid;
 
-    let mut network = SimpleNetwork::<f32, 2, 1, 5, 2>::random(&mut OsRng);
+    let mut network = MyNetwork::random(&mut OsRng);
 
     let data = [
         (Vector2::new(0f32, 0f32), Vector1::new(0f32)),
