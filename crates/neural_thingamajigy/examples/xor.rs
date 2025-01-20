@@ -8,7 +8,9 @@ use rand::rngs::OsRng;
 layer_chain!(pub MyNetwork, f32, 2, 5, 5, 1);
 
 fn main() {
-    let activator = activators::Sigmoid;
+    let activator = activators::Relu {
+        leaky_gradient: 0.001,
+    };
 
     let mut network = MyNetwork::random(&mut OsRng);
 
