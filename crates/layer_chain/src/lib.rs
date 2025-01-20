@@ -72,8 +72,6 @@ pub fn layer_chain(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
         #random_impl
     };
 
-    eprintln!("{}", emitted_code);
-
     emitted_code.into()
 }
 
