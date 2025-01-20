@@ -1,11 +1,11 @@
-use layer_chain::layer_chain;
 use nalgebra::{Vector1, Vector2};
 use neural_thingamajigy::{
-    activators, loss::squared_error, optimiser::AdamOptimiser, train, Network, RandomisableNetwork,
+    activators, loss::squared_error, network, optimiser::AdamOptimiser, train, Network,
+    RandomisableNetwork,
 };
 use rand::rngs::OsRng;
 
-layer_chain!(pub MyNetwork, f32, 2, 5, 5, 1);
+network!(pub MyNetwork, f32, 2, 5, 5, 1);
 
 fn main() {
     let activator = activators::Relu {

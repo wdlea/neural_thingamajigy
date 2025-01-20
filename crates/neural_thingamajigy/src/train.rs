@@ -4,7 +4,6 @@ use crate::{
     activators::Activator,
     network::{Network, TrainableNetwork},
     valueset::mean,
-    SimpleNetwork,
 };
 use loss::LossFunction;
 use nalgebra::{RealField, SVector};
@@ -63,16 +62,9 @@ pub fn train<
 }
 
 /// Calculates the average loss for a network from a set of data
-pub fn get_loss<
-    'a,
-    T: RealField + Copy + Sum,
-    const INPUTS: usize,
-    const OUTPUTS: usize,
-    const WIDTH: usize,
-    const HIDDEN: usize,
->(
+pub fn get_loss<'a, T: RealField + Copy + Sum, const INPUTS: usize, const OUTPUTS: usize>(
     data: impl Iterator<Item = &'a (SVector<T, INPUTS>, SVector<T, OUTPUTS>)>,
-    network: &SimpleNetwork<T, INPUTS, OUTPUTS, WIDTH, HIDDEN>,
+    network: &impl Network<T, INPUTS, OUTPUTS>,
     activator: &impl Activator<T>,
     loss_function: &LossFunction<T, OUTPUTS>,
 ) -> T {

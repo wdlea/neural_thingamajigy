@@ -41,15 +41,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "layer_chain"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.169"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -79,11 +70,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "neural_thingamajigy"
-version = "0.7.2"
+name = "network_macro"
+version = "0.1.0"
 dependencies = [
- "layer_chain",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "neural_thingamajigy"
+version = "0.8.0"
+dependencies = [
  "nalgebra",
+ "network_macro",
  "rand",
  "serde",
  "serde_arrays",

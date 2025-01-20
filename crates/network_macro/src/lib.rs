@@ -40,7 +40,7 @@ impl Parse for LayerChainParams {
 }
 
 #[proc_macro]
-pub fn layer_chain(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn network(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let LayerChainParams {
         visibility,
         num_type,

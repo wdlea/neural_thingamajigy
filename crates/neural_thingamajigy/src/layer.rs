@@ -26,6 +26,7 @@ pub struct Layer<T: RealField, const INPUTS: usize, const OUTPUTS: usize> {
 
 impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Layer<T, INPUTS, OUTPUTS> {
     /// Takes a set of inputs, and transforms them as per the weights, biases and activation function.
+    #[allow(dead_code)] // Allowing dead_code as this is constructed via macros
     pub fn through(
         &self,
         inputs: SVector<T, INPUTS>,

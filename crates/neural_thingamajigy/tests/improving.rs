@@ -1,16 +1,18 @@
 use nalgebra::{Vector1, Vector2};
+use network_macro::network;
 use neural_thingamajigy::{
-    activators, get_loss, loss::squared_error, optimiser::AdamOptimiser, train,
-    RandomisableNetwork, SimpleNetwork,
+    activators, get_loss, loss::squared_error, optimiser::AdamOptimiser, train, RandomisableNetwork,
 };
 use rand::rngs::OsRng;
+
+network!(pub MyNetwork, f32, 2, 5, 5, 1);
 
 /// The model should not get worse with training
 #[test]
 fn improvement_test() {
     let activator = activators::Sigmoid;
 
-    let mut network = SimpleNetwork::<f32, 2, 1, 5, 2>::random(&mut OsRng);
+    let mut network = MyNetwork::random(&mut OsRng);
 
     let data = [
         (Vector2::new(0f32, 0f32), Vector1::new(0f32)),

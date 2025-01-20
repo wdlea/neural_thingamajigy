@@ -6,11 +6,6 @@ use {
     rand::{distributions::Standard, prelude::Distribution, Rng},
 };
 
-/// Defines a simple network with limited customisation optionss
-mod simple_network;
-
-pub use simple_network::SimpleNetwork;
-
 /// Represents a neural network
 pub trait Network<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> {
     /// Evaluate the network with a set of inputs to return a set of outputs

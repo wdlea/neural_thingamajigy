@@ -1,5 +1,5 @@
 [package]
-name = "layer_chain"
+name = "network_macro"
 version = "0.1.0"
 edition = "2021"
 
