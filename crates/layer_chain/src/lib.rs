@@ -3,6 +3,7 @@ use quote::{format_ident, quote};
 use syn::{parse::Parse, parse_macro_input, Ident, LitInt, Token, Type, Visibility};
 
 mod network_impl;
+mod random_impl;
 mod trainable_impl;
 
 struct LayerChainParams {
@@ -62,11 +63,13 @@ pub fn layer_chain(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
         &outputs,
         &num_type,
     );
+    let random_impl = random_impl::generate_random_impl(&name, &num_type, &names);
 
     let emitted_code = quote! {
         #struct_definiton
         #network_impl
         #trainable_network_impl
+        #random_impl
     };
 
     eprintln!("{}", emitted_code);
