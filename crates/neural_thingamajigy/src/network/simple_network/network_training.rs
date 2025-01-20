@@ -147,11 +147,11 @@ where
     Standard: Distribution<T>,
 {
     /// Generates a random network with random((-1)-(1)) weights and biases.
-    fn random(_: &mut impl Rng) -> Self {
+    fn random(rng: &mut impl Rng) -> Self {
         Self {
-            first: Layer::random(),
-            hidden: from_fn(|_| Layer::random()),
-            last: Layer::random(),
+            first: Layer::random(rng),
+            hidden: from_fn(|_| Layer::random(rng)),
+            last: Layer::random(rng),
         }
     }
 }

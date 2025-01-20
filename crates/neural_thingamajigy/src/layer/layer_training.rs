@@ -1,7 +1,7 @@
 use super::{Layer, LayerGradient};
 use crate::activators::Activator;
 use nalgebra::{RealField, SMatrix, SVector};
-use rand::{distributions::Standard, prelude::Distribution};
+use rand::{distributions::Standard, prelude::Distribution, Rng};
 
 impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Layer<T, INPUTS, OUTPUTS> {
     /// The gradient of the layer for a given set of inputs.
@@ -48,15 +48,14 @@ impl<T: RealField + Copy, const INPUTS: usize, const OUTPUTS: usize> Layer<T, IN
         self.bias += bias_direction;
     }
 
-    /// Generates a new layer with all values between -1 and 1
-    pub fn random() -> Self
+    /// Generates a new layer with all values set using the Standard distribution
+    pub fn random(rng: &mut impl Rng) -> Self
     where
         Standard: Distribution<T>,
     {
-        let two = T::one() + T::one();
         Self {
-            weight: SMatrix::new_random() * two - SMatrix::from_fn(|_, _| T::one()),
-            bias: SMatrix::new_random() * two - SMatrix::from_fn(|_, _| T::one()),
+            weight: SMatrix::from_iterator(rng.sample_iter(Standard)),
+            bias: SMatrix::from_iterator(rng.sample_iter(Standard)),
         }
     }
 }

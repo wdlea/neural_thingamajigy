@@ -7,7 +7,7 @@ pub fn generate_random_impl(name: &Ident, num_type: &Type, names: &[Ident]) -> T
         impl neural_thingamajigy::RandomisableNetwork<#num_type> for #name{
             fn random(rng: &mut impl Rng) -> Self{
                 Self{
-                    #(#names: Layer::random()),*
+                    #(#names: Layer::random(rng)),*
                 }
             }
         }
