@@ -35,5 +35,5 @@ fn improvement_test() {
 
     let last_loss = get_loss(data.iter(), &mut network, &activator, &squared_error);
 
-    assert!(first_loss >= last_loss)
+    assert!(first_loss > last_loss) // should have definitely got better
 }
