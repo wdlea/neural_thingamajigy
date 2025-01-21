@@ -13,7 +13,7 @@ mod network;
 mod train;
 /// Defines the ValueSet trait, which abstracts over anything which is a nested collection of a value
 #[cfg(feature = "train")]
-mod valueset;
+pub mod valueset;
 
 pub use network::*;
 #[cfg(feature = "train")]
