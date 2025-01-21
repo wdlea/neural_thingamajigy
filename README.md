@@ -1,3 +1,12 @@
+# neural_thingamajigy (placeholder name)
+*A no_std compatable neural network library for rust.*
+
+This libary is designed to be used in embedded applications, but trained on more powerful devices. By enabling the `train` feature, models can be trained and serialized using serde(or something else). Without the `train` feature, the library is completely no_std.
+
+## Example Code
+More examples available in the examples directory
+
+```rust 
 use nalgebra::{Vector1, Vector2};
 use neural_thingamajigy::{
     activators, loss::squared_error, network, optimiser::AdamOptimiser, train, Network,
@@ -17,6 +26,8 @@ fn main() {
     // Make an instance with weights and biases randomly intialized
     let mut network = MyNetwork::random(&mut OsRng);
     // Training data in (input, expected output) pairs
+    // This data is the 4 possible inputs and respective outputs
+    // from the XOR operation.
     let data = [
         (Vector2::new(0f32, 0f32), Vector1::new(0f32)),
         (Vector2::new(1f32, 0f32), Vector1::new(1f32)),
@@ -61,3 +72,4 @@ fn main() {
         break;
     }
 }
+```
