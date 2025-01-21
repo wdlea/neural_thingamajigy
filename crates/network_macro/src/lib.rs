@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{parse::Parse, parse_macro_input, Ident, LitInt, Token, Type, Visibility};
+use syn::{parse::Parse, parse_macro_input, Ident, LitBool, LitInt, Token, Type, Visibility};
 
 mod network_impl;
 mod random_impl;
@@ -11,6 +11,7 @@ struct LayerChainParams {
     num_type: Type,
     name: Ident,
     layers: Vec<LitInt>,
+    train: bool,
 }
 
 impl Parse for LayerChainParams {
@@ -20,6 +21,9 @@ impl Parse for LayerChainParams {
         let name = input.parse()?;
         input.parse::<Token![,]>()?;
         let num_type = input.parse()?;
+        input.parse::<Token![,]>()?;
+
+        let train = input.parse::<LitBool>()?;
         input.parse::<Token![,]>()?;
 
         let mut hidden = Vec::new();
@@ -35,6 +39,7 @@ impl Parse for LayerChainParams {
             name,
             num_type,
             layers: hidden,
+            train: train.value,
         })
     }
 }
@@ -46,6 +51,7 @@ pub fn network(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
         num_type,
         name,
         layers,
+        train,
     } = parse_macro_input!(tokens);
     if layers.len() < 2 {
         panic!("You need to supply at least 2 layer width parameters");
@@ -55,15 +61,22 @@ pub fn network(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
         generate_struct_definition(&visibility, &name, &num_type, &layers);
 
     let network_impl = network_impl::generate_network_impl(&num_type, &layers, &names, &name);
-    let trainable_network_impl = trainable_impl::generate_trainable_network_impl(
-        &visibility,
-        &name,
-        &names,
-        &inputs,
-        &outputs,
-        &num_type,
-    );
-    let random_impl = random_impl::generate_random_impl(&name, &num_type, &names);
+
+    let (trainable_network_impl, random_impl) = if train {
+        (
+            trainable_impl::generate_trainable_network_impl(
+                &visibility,
+                &name,
+                &names,
+                &inputs,
+                &outputs,
+                &num_type,
+            ),
+            random_impl::generate_random_impl(&name, &num_type, &names),
+        )
+    } else {
+        (quote! {}, quote! {})
+    };
 
     let emitted_code = quote! {
         #struct_definiton
