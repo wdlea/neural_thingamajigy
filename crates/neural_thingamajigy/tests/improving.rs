@@ -5,7 +5,7 @@ use neural_thingamajigy::{
 };
 use rand::rngs::OsRng;
 
-network!(pub MyNetwork, f32, true, 2, 5, 5, 1);
+network!(pub MyNetwork, f32, 2, 5, 5, 1);
 
 /// The model should not get worse with training
 #[test]

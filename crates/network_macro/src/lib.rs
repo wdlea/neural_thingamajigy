@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{parse::Parse, parse_macro_input, Ident, LitBool, LitInt, Token, Type, Visibility};
+use syn::{parse::Parse, parse_macro_input, Ident, LitInt, Token, Type, Visibility};
 
 mod network_impl;
 mod random_impl;
@@ -11,7 +11,6 @@ struct LayerChainParams {
     num_type: Type,
     name: Ident,
     layers: Vec<LitInt>,
-    train: bool,
 }
 
 impl Parse for LayerChainParams {
@@ -21,9 +20,6 @@ impl Parse for LayerChainParams {
         let name = input.parse()?;
         input.parse::<Token![,]>()?;
         let num_type = input.parse()?;
-        input.parse::<Token![,]>()?;
-
-        let train = input.parse::<LitBool>()?;
         input.parse::<Token![,]>()?;
 
         let mut hidden = Vec::new();
@@ -49,7 +45,6 @@ impl Parse for LayerChainParams {
             name,
             num_type,
             layers: hidden,
-            train: train.value,
         })
     }
 }
@@ -62,8 +57,6 @@ impl Parse for LayerChainParams {
 ///     - `NAME`, is the identifier for the generated network. e.g: `MyNetwork`, `WeatherPredictor`, `Critic`
 ///     - `TYPE`, is the type of number used in the generated network. Must `impl nalgebra::RealField + Copy`.
 ///         e.g: `f32` or `f64`
-///     - `GENERATE_TRAINING`, `true` to generate `impl RandomisableNetwork` and `impl TrainableNetwork`.
-///         `false` to skip generation to support `#![no_std]`
 ///     - `WIDTHS`, the comma seperated list of layer widths, there are 2 formats: `N`, will
 ///         produce a single layer with N nodes. `N * M` will produce `M` layers each with `N` nodes.
 ///         Thus: `5, 5, 5, 6` and `5 * 3, 6` will produce the same network. The first layer width will
@@ -75,9 +68,9 @@ impl Parse for LayerChainParams {
 /// ```rust
 ///     use neural_thingamajigy::{network, Network, activators::Relu, RandomisableNetwork};
 ///     
-///     // Create a public network with called `EpicName`, that will have training data generated
+///     // Create a public network with called `EpicName`
 ///     // with 2 input nodes, 2 hidden layers with 5 nodes each and 1 output node
-///     network!(pub EpicName, f32, true, 2, 5, 5, 1);
+///     network!(pub EpicName, f32, 2, 5, 5, 1);
 ///     let my_network = EpicName::random(&mut rand::rngs::OsRng);
 ///     let output = my_network.evaluate(nalgebra::Vector2::new(1f32, 1f32), &Relu::default());
 /// ```
@@ -86,8 +79,8 @@ impl Parse for LayerChainParams {
 ///     # use neural_thingamajigy::network;
 ///     // Both of the below networks have the same structure as the other.
 ///     // One is a lot easier to read & type.
-///     network!(pub CoolName, f32, true, 5, 5, 5, 6);
-///     network!(pub CoolerName, f32, true, 5 * 3, 6);
+///     network!(pub CoolName, f32, 5, 5, 5, 6);
+///     network!(pub CoolerName, f32, 5 * 3, 6);
 ///     
 /// ```
 ///
@@ -103,7 +96,6 @@ pub fn network(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
         num_type,
         name,
         layers,
-        train,
     } = parse_macro_input!(tokens);
     if layers.len() < 2 {
         panic!("You need to supply at least 2 layer width parameters");
@@ -114,21 +106,17 @@ pub fn network(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
     let network_impl = network_impl::generate_network_impl(&num_type, &layers, &names, &name);
 
-    let (trainable_network_impl, random_impl) = if train {
-        (
-            trainable_impl::generate_trainable_network_impl(
-                &visibility,
-                &name,
-                &names,
-                &inputs,
-                &outputs,
-                &num_type,
-            ),
-            random_impl::generate_random_impl(&name, &num_type, &names),
-        )
-    } else {
-        (quote! {}, quote! {})
-    };
+    let (trainable_network_impl, random_impl) = (
+        trainable_impl::generate_trainable_network_impl(
+            &visibility,
+            &name,
+            &names,
+            &inputs,
+            &outputs,
+            &num_type,
+        ),
+        random_impl::generate_random_impl(&name, &num_type, &names),
+    );
 
     let emitted_code = quote! {
         #struct_definiton

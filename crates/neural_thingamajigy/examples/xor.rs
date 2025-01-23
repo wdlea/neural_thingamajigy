@@ -6,7 +6,7 @@ use neural_thingamajigy::{
 use rand::rngs::OsRng;
 
 // Create a neural network called MyNetwork(public) using f32s with widths 2, 5, 5, 1.
-network!(pub MyNetwork, f32, true, 2, 5 * 2, 1);
+network!(pub MyNetwork, f32, 2, 5 * 2, 1);
 
 fn main() {
     // Create the activation function

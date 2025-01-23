@@ -30,6 +30,7 @@ pub fn generate_trainable_network_impl(
     quote! {
         #network_layer_inputs_impl
         #network_gradient_impl
+        #[cfg(not(target_os = "none"))]
         impl neural_thingamajigy::TrainableNetwork<#num_type, #network_inputs, #network_outputs> for #name{
             type LayerInputs = #network_layer_inputs_name;
             type Gradient = #network_gradient_impl_name;
@@ -54,6 +55,7 @@ fn generate_trainable_network_inputs(
 
     (
         quote! {
+            #[cfg(not(target_os = "none"))]
             #visibility struct #inputs_name{
                 #(#names: nalgebra::SVector<#num_type, #inputs>), *
             }
