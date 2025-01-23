@@ -28,8 +28,18 @@ impl Parse for LayerChainParams {
 
         let mut hidden = Vec::new();
 
-        while let Ok(width) = input.parse() {
-            hidden.push(width);
+        while let Ok(width) = input.parse::<LitInt>() {
+            let mut reps = 1;
+            if input.peek(Token![*]) {
+                _ = input.parse::<Token![*]>();
+
+                let count = input.parse::<LitInt>()?;
+                reps = count.base10_parse()?;
+            }
+
+            for _ in 0..reps {
+                hidden.push(width.clone());
+            }
 
             _ = input.parse::<Token![,]>();
         }
@@ -44,6 +54,48 @@ impl Parse for LayerChainParams {
     }
 }
 
+/// Creates a network with the supplied visibility, name and width arguments.
+///
+/// ```network!(VISIBILITY NAME, TYPE, GENERATE_TRAINING, WIDTHS);```
+/// Params:
+///     - `VISIBILITY`, is the visibility *prefix* that the generated network will have. e.g: `pub` or (empty)
+///     - `NAME`, is the identifier for the generated network. e.g: `MyNetwork`, `WeatherPredictor`, `Critic`
+///     - `TYPE`, is the type of number used in the generated network. Must `impl nalgebra::RealField + Copy`.
+///         e.g: `f32` or `f64`
+///     - `GENERATE_TRAINING`, `true` to generate `impl RandomisableNetwork` and `impl TrainableNetwork`.
+///         `false` to skip generation to support `#![no_std]`
+///     - `WIDTHS`, the comma seperated list of layer widths, there are 2 formats: `N`, will
+///         produce a single layer with N nodes. `N * M` will produce `M` layers each with `N` nodes.
+///         Thus: `5, 5, 5, 6` and `5 * 3, 6` will produce the same network. The first layer width will
+///         be the `INPUTS` generic on the produced network wheras the last layer width will be the
+///         `OUTPUTS` generic.
+///
+///
+/// # Examples
+/// ```rust
+///     use neural_thingamajigy::{network, Network, activators::Relu, RandomisableNetwork};
+///     
+///     // Create a public network with called `EpicName`, that will have training data generated
+///     // with 2 input nodes, 2 hidden layers with 5 nodes each and 1 output node
+///     network!(pub EpicName, f32, true, 2, 5, 5, 1);
+///     let my_network = EpicName::random(&mut rand::rngs::OsRng);
+///     let output = my_network.evaluate(nalgebra::Vector2::new(1f32, 1f32), &Relu::default());
+/// ```
+/// ## Shorthand form
+/// ```rust
+///     # use neural_thingamajigy::network;
+///     // Both of the below networks have the same structure as the other.
+///     // One is a lot easier to read & type.
+///     network!(pub CoolName, f32, true, 5, 5, 5, 6);
+///     network!(pub CoolerName, f32, true, 5 * 3, 6);
+///     
+/// ```
+///
+/// # Panics
+/// Panics if:
+/// - There are less than 2 layer widths
+/// - An invalid token is supplied
+/// - Never panics at runtime.
 #[proc_macro]
 pub fn network(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let LayerChainParams {

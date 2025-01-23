@@ -73,8 +73,11 @@ dependencies = [
 name = "network_macro"
 version = "0.1.0"
 dependencies = [
+ "nalgebra",
+ "neural_thingamajigy",
  "proc-macro2",
  "quote",
+ "rand",
  "syn",
 ]
 
