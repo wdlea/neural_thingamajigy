@@ -75,13 +75,9 @@ impl<T: ComplexField, A: ValueSet<T>, B: ValueSet<T>> ValueSet<T> for (A, B) {
 impl<T: ComplexField> ValueSet<T> for () {
     // straight noops
 
-    fn unary_operation(&self, _: impl Fn(&T) -> T) -> Self {
-        ()
-    }
+    fn unary_operation(&self, _: impl Fn(&T) -> T) -> Self {}
 
-    fn binary_operation(&self, _: &Self, _: impl Fn(&T, &T) -> T) -> Self {
-        ()
-    }
+    fn binary_operation(&self, _: &Self, _: impl Fn(&T, &T) -> T) -> Self {}
 
     fn unary_inspection(&self, _: &mut impl FnMut(&T)) {}
 

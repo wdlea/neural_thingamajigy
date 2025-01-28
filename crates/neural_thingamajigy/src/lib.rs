@@ -10,6 +10,8 @@ mod chain;
 mod layer;
 /// This defines a network type, containing a sequence of layers.
 mod network;
+/// Defines common operations for [pre/post]processing
+pub mod operations;
 /// This holds the train function, allowing users to train their networks via MSE.
 #[cfg(feature = "train")]
 mod train;
