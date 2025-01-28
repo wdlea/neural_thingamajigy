@@ -4,6 +4,8 @@
 
 /// Defines the Activator type
 pub mod activators;
+/// Defines the ChainedNetwork type and chain, supporting joining networks together
+mod chain;
 /// This defines the Layer type, representing a layer of neurons and handles weighting, activation and biases.
 mod layer;
 /// This defines a network type, containing a sequence of layers.
@@ -15,6 +17,6 @@ mod train;
 #[cfg(feature = "train")]
 pub mod valueset;
 
+pub use {chain::ChainableNetwork, network::*, network_macro::network};
 #[cfg(feature = "train")]
 pub use {layer::Layer, train::*, valueset::ValueSet};
-pub use {network::*, network_macro::network};
