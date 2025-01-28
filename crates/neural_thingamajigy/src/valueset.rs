@@ -72,6 +72,24 @@ impl<T: ComplexField, A: ValueSet<T>, B: ValueSet<T>> ValueSet<T> for (A, B) {
     }
 }
 
+impl<T: ComplexField> ValueSet<T> for () {
+    // straight noops
+
+    fn unary_operation(&self, _: impl Fn(&T) -> T) -> Self {
+        ()
+    }
+
+    fn binary_operation(&self, _: &Self, _: impl Fn(&T, &T) -> T) -> Self {
+        ()
+    }
+
+    fn unary_inspection(&self, _: &mut impl FnMut(&T)) {}
+
+    fn binary_inspection(&self, _: &Self, _: &mut impl FnMut(&T, &T)) {}
+
+    fn all(_: T) -> Self {}
+}
+
 /// Returns the sum and count of the ValueSets in v
 pub fn sum_count<T: ComplexField + Copy, V: ValueSet<T> + Default>(v: &[V]) -> (V, T) {
     let mut count = T::zero();
