@@ -68,18 +68,24 @@ where
     /// Chain this network to next and return the chain
     /// ## Example
     /// ```rust
-    ///     use neural_thingamajigy::{network, RandomisableNetwork, ChainableNetwork, Network, activators::Relu};
+    ///     use neural_thingamajigy::{network, RandomisableNetwork, ChainableNetwork, Network, TrainableNetwork, activators::Relu};
     ///     use rand::rngs::OsRng;
     ///
     ///     network!(pub MyCoolNetwork, f32, 1, 2, 3);
     ///     network!(pub MyOtherNetwork, f32, 3, 2, 1);
     ///
-    ///     let cool = MyCoolNetwork::random(&mut OsRng);
-    ///     let other = MyOtherNetwork::random(&mut OsRng);
+    ///     let mut cool = MyCoolNetwork::random(&mut OsRng);
+    ///     let mut other = MyOtherNetwork::random(&mut OsRng);
     ///     
-    ///     let chained = cool.chain(other);
+    ///     // Passing mutable references to TrainableNetworks(which
+    ///     // network! produces on builds with std support), means
+    ///     // `chained` will also be a TrainiableNetwork.
+    ///     let chained = (&mut cool).chain(&mut other);
     ///
-    ///     let output: nalgebra::Vector1<f32> = chained.evaluate(nalgebra::Vector1::<f32>::new(1f32), &Relu::default());
+    ///     let output1: nalgebra::Vector1<f32> = chained.evaluate(nalgebra::Vector1::<f32>::new(1f32), &Relu::default());
+    ///     let (output2, _) = chained.evaluate_training(nalgebra::Vector1::<f32>::new(1f32), &Relu::default());
+    ///
+    ///     assert_eq!(output1, output2);
     /// ```
     fn chain<const OUTPUTS: usize, Next: Network<T, MIDDLE, OUTPUTS>>(
         self,
