@@ -1,6 +1,13 @@
 # neural_thingamajigy (placeholder name)
 *A no_std compatable neural network library for rust.*
 
+> [!WARNING]
+> This is more of a hobby project than a library intended for production use.
+> Due to this, it:
+>  - May not work
+>  - May not be maintained
+>  - May be poorly documented
+
 This libary is designed to be used in embedded applications, but trained on more powerful devices. By enabling the `train` feature, models can be trained and serialized using serde(or something else). Without the `train` feature, the library is completely no_std.
 
 ## Example Code
