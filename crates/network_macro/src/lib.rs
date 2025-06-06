@@ -134,6 +134,11 @@ fn generate_struct_definition(
     num_type: &Type,
     layers: &[LitInt],
 ) -> (TokenStream, Vec<LitInt>, Vec<LitInt>, Vec<Ident>) {
+    #[cfg(not(feature = "serde"))]
+    let serde = quote! {};
+    #[cfg(feature = "serde")]
+    let serde = quote! {#[derive(serde::Deserialize, serde::Serialize)]};
+
     let inputs: Vec<_> = layers.to_vec();
     let outputs: Vec<_> = layers.iter().skip(1).cloned().collect();
     let names: Vec<_> = (0usize..)
@@ -145,6 +150,7 @@ fn generate_struct_definition(
 
     (
         quote! {
+            #serde
             #visibility struct #name {
                 #(#names: neural_thingamajigy::Layer<#num_type, #inputs, #outputs>), *
             }

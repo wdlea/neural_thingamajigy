@@ -5,7 +5,7 @@ edition = "2021"
 
 [features]
 train = ["nalgebra/rand", "nalgebra/libm", "dep:rand"]
-serde = ["dep:serde", "dep:serde_arrays", "nalgebra/serde-serialize-no-std"]
+serde = ["dep:serde", "dep:serde_arrays", "nalgebra/serde-serialize-no-std", "network_macro/serde"]
 
 [dependencies]
 nalgebra = { version = "0.33.2", default-features = false }

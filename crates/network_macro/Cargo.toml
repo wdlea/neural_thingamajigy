@@ -3,6 +3,9 @@ name = "network_macro"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+serde = []
+
 [dependencies]
 syn = "2"
 quote = "1"
