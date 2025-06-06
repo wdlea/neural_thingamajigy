@@ -1,8 +1,8 @@
 use nalgebra::{RealField, SVector};
 
-use crate::{ChainableNetwork, Network};
+use crate::{operations::normalize::TaxicabNormalize, ChainableNetwork, Network};
 
-use super::{Exp, Normalize};
+use super::Exp;
 
 /// Performs the Softmax operation
 pub struct Softmax;
@@ -13,12 +13,12 @@ impl<T: RealField + Copy, const INPUTS: usize> Network<T, INPUTS, INPUTS> for So
         inputs: SVector<T, INPUTS>,
         activator: &impl crate::activators::Activator<T>,
     ) -> SVector<T, INPUTS> {
-        Exp.chain(Normalize).evaluate(inputs, activator)
+        Exp.chain(TaxicabNormalize).evaluate(inputs, activator)
     }
 }
 
 #[cfg(feature = "train")]
-use crate::TrainableNetwork;
+use crate::{operations::Normalize, TrainableNetwork};
 
 #[cfg(feature = "train")]
 impl<T: RealField + Copy, const INPUTS: usize> TrainableNetwork<T, INPUTS, INPUTS> for Softmax {
@@ -61,9 +61,6 @@ mod test {
 
         let softmaxed = Softmax.evaluate(Vector3::new(1f32, 2f32, 3f32), &Linear);
         assert!((softmaxed.norm() - 1f32) < 0.001f32);
-        assert_eq!(
-            softmaxed,
-            Vector3::new(0.090031f32, 0.244728f32, 0.665241f32)
-        );
+        assert!((softmaxed - Vector3::new(0.090031f32, 0.244728f32, 0.665241f32)).norm() < 0.0001);
     }
 }

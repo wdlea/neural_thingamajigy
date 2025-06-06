@@ -51,6 +51,55 @@ impl<T: RealField + Copy, const INPUTS: usize> TrainableNetwork<T, INPUTS, INPUT
     fn apply_nudge(&mut self, _: Self::Gradient) {}
 }
 
+/// Normalizes the inputs based on taxicab geometry
+pub struct TaxicabNormalize;
+
+impl<T: RealField + Copy, const INPUTS: usize> Network<T, INPUTS, INPUTS> for TaxicabNormalize {
+    fn evaluate(
+        &self,
+        inputs: SVector<T, INPUTS>,
+        _: &impl crate::activators::Activator<T>,
+    ) -> SVector<T, INPUTS> {
+        let sum = inputs.sum();
+
+        inputs / sum
+    }
+}
+
+#[cfg(feature = "train")]
+impl<T: RealField + Copy, const INPUTS: usize> TrainableNetwork<T, INPUTS, INPUTS>
+    for TaxicabNormalize
+{
+    type LayerInputs = SVector<T, INPUTS>;
+
+    type Gradient = ();
+
+    fn evaluate_training(
+        &self,
+        inputs: SVector<T, INPUTS>,
+        activator: &impl crate::activators::Activator<T>,
+    ) -> (SVector<T, INPUTS>, Self::LayerInputs) {
+        (self.evaluate(inputs, activator), inputs)
+    }
+
+    fn get_gradient(
+        &self,
+        layer_inputs: &Self::LayerInputs,
+        output_loss_gradients: SVector<T, INPUTS>,
+        _: &impl crate::activators::Activator<T>,
+    ) -> (Self::Gradient, SVector<T, INPUTS>) {
+        let input_sum = layer_inputs.sum();
+        let dot = layer_inputs.dot(&output_loss_gradients);
+
+        (
+            (),
+            output_loss_gradients / input_sum - layer_inputs * dot / (input_sum.powi(2)),
+        )
+    }
+
+    fn apply_nudge(&mut self, _: Self::Gradient) {}
+}
+
 /// Testing
 mod test {
     #[test]
