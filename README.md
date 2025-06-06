@@ -80,3 +80,9 @@ fn main() {
     }
 }
 ```
+
+## Feature Flags
+### train
+Enables training features, requires std
+### serde
+Enables serde traits

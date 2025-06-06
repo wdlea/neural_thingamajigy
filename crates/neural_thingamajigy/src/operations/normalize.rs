@@ -66,6 +66,7 @@ mod test {
         let vec = Vector6::new(1f32, 7f32, -4f32, PI, 100f32, -1700f32);
         let expected = vec.normalize();
         assert_eq!(Normalize.evaluate(vec, &Sigmoid), expected);
+        assert!((expected.norm() - 1f32) < 0.001f32);
 
         let (out, inputs) = Normalize.evaluate_training(vec, &Sigmoid);
         assert_eq!(out, expected);

@@ -48,15 +48,19 @@ impl<T: RealField + Copy, const INPUTS: usize> TrainableNetwork<T, INPUTS, INPUT
 
 /// Tests
 mod test {
+
     #[test]
     fn exp_test() {
         use super::Exp;
         use crate::{activators::Sigmoid, network::Network, TrainableNetwork};
+        use core::f32::consts::E;
         use nalgebra::Vector1;
 
         let num = 3f32;
         let input = Vector1::new(num);
         let expected = num.exp();
+
+        assert!(expected - E.powf(num) < 0.01);
 
         assert_eq!(expected, Exp.evaluate(input.clone(), &Sigmoid).x); // Sigmoid is arbitrary and shouldn't do anything
 
