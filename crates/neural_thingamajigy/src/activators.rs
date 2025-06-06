@@ -93,3 +93,16 @@ impl<T: RealField + Copy> Activator<T> for Elu {
         }
     }
 }
+
+/// The Linear activation function, simply returns whatever was passed in
+pub struct Linear;
+
+impl<T: RealField + Copy> Activator<T> for Linear {
+    fn activation(&self, x: T) -> T {
+        x
+    }
+
+    fn activation_gradient(&self, _: T) -> T {
+        T::one()
+    }
+}

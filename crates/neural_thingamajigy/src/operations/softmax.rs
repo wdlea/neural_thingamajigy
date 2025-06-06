@@ -53,12 +53,13 @@ impl<T: RealField + Copy, const INPUTS: usize> TrainableNetwork<T, INPUTS, INPUT
 
 /// Tests
 mod test {
+
     #[test]
     fn softmax_test() {
-        use crate::{activators::Sigmoid, operations::softmax::Softmax, Network};
+        use crate::{activators::Linear, operations::softmax::Softmax, Network};
         use nalgebra::Vector3;
 
-        let softmaxed = Softmax.evaluate(Vector3::new(1f32, 2f32, 3f32), &Sigmoid);
+        let softmaxed = Softmax.evaluate(Vector3::new(1f32, 2f32, 3f32), &Linear);
         assert!((softmaxed.norm() - 1f32) < 0.001f32);
         assert_eq!(
             softmaxed,
