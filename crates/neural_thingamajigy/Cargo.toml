@@ -9,9 +9,9 @@ serde = ["dep:serde", "dep:serde_arrays", "nalgebra/serde-serialize-no-std", "ne
 
 [dependencies]
 nalgebra = { version = "0.33.2", default-features = false }
-rand = { version = "0.8.5", optional = true }
+rand = { version = "0.8.5", default-features = false, optional = true }
 serde = { version = "1.0.*", default-features = false, optional = true }
-serde_arrays = { version = "0.1.0", optional = true }
+serde_arrays = { version = "0.1.0", default-features = false, optional = true }
 network_macro = { path = "../network_macro" }
 
 [[example]]
