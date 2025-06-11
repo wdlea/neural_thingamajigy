@@ -19,6 +19,6 @@ mod train;
 #[cfg(feature = "train")]
 pub mod valueset;
 
-pub use {chain::ChainableNetwork, network::*, network_macro::network};
+pub use {chain::ChainableNetwork, layer::Layer, network::*, network_macro::network};
 #[cfg(feature = "train")]
-pub use {layer::Layer, train::*, valueset::ValueSet};
+pub use {train::*, valueset::ValueSet};
