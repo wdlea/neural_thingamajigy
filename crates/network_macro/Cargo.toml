@@ -5,6 +5,7 @@ edition = "2021"
 
 [features]
 serde = []
+train = []
 
 [dependencies]
 syn = "2"
@@ -12,10 +13,10 @@ quote = "1"
 proc-macro2 = "1"
 
 [dev-dependencies]
-rand = {version = "0.8"} 
-neural_thingamajigy = {path = "../neural_thingamajigy", features = ["train"]}
-nalgebra = {version="0.33.2", default-features=false}
-
+rand = { version = "0.8" }
+neural_thingamajigy = { path = "../neural_thingamajigy", features = ["train", "serde"] }
+nalgebra = { version = "0.33.2", default-features = false }
+serde = {version = "^1", default-features = false, features = ["derive"]}
 
 [lib]
 proc-macro = true

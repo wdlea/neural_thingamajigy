@@ -3,7 +3,9 @@ use quote::{format_ident, quote};
 use syn::{parse::Parse, parse_macro_input, Ident, LitInt, Token, Type, Visibility};
 
 mod network_impl;
+#[cfg(feature = "train")]
 mod random_impl;
+#[cfg(feature = "train")]
 mod trainable_impl;
 
 struct LayerChainParams {
@@ -77,6 +79,7 @@ impl Parse for LayerChainParams {
 /// ## Shorthand form
 /// ```rust
 ///     # use neural_thingamajigy::network;
+///     # use serde;
 ///     // Both of the below networks have the same structure as the other.
 ///     // One is a lot easier to read & type.
 ///     network!(pub CoolName, f32, 5, 5, 5, 6);
@@ -106,6 +109,7 @@ pub fn network(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
     let network_impl = network_impl::generate_network_impl(&num_type, &layers, &names, &name);
 
+    #[cfg(feature = "train")]
     let (trainable_network_impl, random_impl) = (
         trainable_impl::generate_trainable_network_impl(
             &visibility,
@@ -117,6 +121,8 @@ pub fn network(tokens: proc_macro::TokenStream) -> proc_macro::TokenStream {
         ),
         random_impl::generate_random_impl(&name, &num_type, &names),
     );
+    #[cfg(not(feature = "train"))]
+    let (trainable_network_impl, random_impl) = (quote! {}, quote! {});
 
     let emitted_code = quote! {
         #struct_definiton

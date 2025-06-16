@@ -4,7 +4,7 @@ version = "0.11.3"
 edition = "2021"
 
 [features]
-train = ["nalgebra/rand", "nalgebra/libm", "dep:rand"]
+train = ["nalgebra/rand", "nalgebra/libm", "dep:rand", "network_macro/train"]
 serde = ["dep:serde", "nalgebra/serde-serialize-no-std", "network_macro/serde"]
 
 [dependencies]

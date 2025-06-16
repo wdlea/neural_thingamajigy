@@ -14,12 +14,10 @@ pub fn generate_trainable_network_gradient(
 
     (
         quote! {
-            #[cfg(not(target_os = "none"))]
             #[derive(Default)]
             #visibility struct #inputs_name{
                 #(#names: neural_thingamajigy::LayerGradient<#num_type, #inputs, #outputs>), *
             }
-            #[cfg(not(target_os = "none"))]
             impl neural_thingamajigy::ValueSet<#num_type> for #inputs_name{
                 fn unary_operation(&self, f: impl Fn(&#num_type) -> #num_type) -> Self {
                     Self{
